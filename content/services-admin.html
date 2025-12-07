@@ -1,0 +1,326 @@
+<style>
+  .services-admin-wrapper { max-width:1400px; margin:40px auto; padding:0 20px; }
+  .services-header h1 { font-size:1.9rem; font-weight:700; margin:0 0 6px; }
+  .services-header p { color:#475569; margin:0 0 24px; }
+  .services-filters { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:16px; }
+  .services-filters .form-control, .services-filters .form-select { min-width:200px; }
+  .services-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:12px; box-shadow:0 2px 4px rgba(0,0,0,.05); overflow:hidden; }
+  table.services-table { width:100%; border-collapse:collapse; }
+  table.services-table thead { background:#f1f5f9; }
+  table.services-table th, table.services-table td { padding:10px 12px; text-align:left; font-size:14px; border-bottom:1px solid #edf2f7; vertical-align:middle; }
+  table.services-table th { font-weight:600; color:#0f172a; font-size:12px; text-transform:uppercase; letter-spacing:.5px; }
+  table.services-table tr:last-child td { border-bottom:none; }
+  .price-input { width:90px; }
+  .dur-input { width:80px; }
+  .row-dirty { background:#fffbea; }
+  .row-added { background:#ecfdf5; }
+  .row-removed { background:#fee2e2; text-decoration:line-through; }
+  .save-bar { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px; padding:14px 16px; background:#fff; border:1px solid #e2e8f0; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,.06); margin-top:20px; }
+  .save-bar .status { font-size:14px; color:#64748b; }
+  .success-toast, .error-toast { position:fixed; bottom:20px; right:20px; background:#0f172a; color:#fff; padding:12px 16px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,.15); font-size:14px; display:none; }
+  .success-toast { background:#0f6848; }
+  .error-toast { background:#992b2b; }
+  .add-service-form { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:16px; box-shadow:0 2px 4px rgba(0,0,0,.05); margin-bottom:20px; }
+  .add-service-form h2 { font-size:1.25rem; margin:0 0 12px; font-weight:600; }
+  .add-service-grid { display:grid; gap:12px; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); }
+  .inline-btns { display:flex; gap:8px; }
+  .badge-small { display:inline-block; padding:2px 8px; font-size:11px; border-radius:14px; background:#f1f5f9; margin-right:4px; }
+  .desc-textarea { min-height:32px; resize:vertical; transition:min-height 0.2s ease; }
+  .desc-textarea.expanded { min-height:120px; }
+  @media (max-width: 900px){ .services-table thead { display:none; } table.services-table tr { display:block; margin:0 0 12px; border:1px solid #e2e8f0; border-radius:10px; } table.services-table td { display:flex; justify-content:space-between; border-bottom:1px solid #f1f5f9; } table.services-table tr:last-child td { border-bottom:1px solid #f1f5f9; } table.services-table td::before { content: attr(data-label); font-weight:600; color:#334155; } .price-input, .dur-input { width:80px; } }
+</style>
+
+<div class="services-admin-wrapper">
+  <div class="services-header d-flex flex-wrap align-items-start justify-content-between gap-3">
+    <div>
+      <h1>Services Admin</h1>
+      <p>Manage service pricing, status, and entries. /api/catalog remains the single source of truth. Adding or removing services updates section blobs; changes apply to future bookings only.</p>
+    </div>
+    <div class="text-end">
+      <button class="btn btn-outline-primary" id="toggleAddServiceBtn" aria-expanded="false" aria-controls="addServiceForm">Create New Service</button>
+    </div>
+  </div>
+
+  <div class="add-service-form" id="addServiceForm" style="display:none;">
+    <h2 class="d-flex justify-content-between align-items-center">
+      <span>Add New Service</span>
+      <button type="button" class="btn btn-sm btn-link text-decoration-none" id="closeAddServiceBtn" aria-label="Close add service form">Close ✕</button>
+    </h2>
+    <div class="add-service-grid">
+      <input id="newServiceName" class="form-control" placeholder="Service name (e.g. Thai Massage)" />
+      <select id="newServiceCategory" class="form-select"></select>
+      <input id="newServiceDuration" type="number" min="10" step="5" class="form-control" placeholder="Duration (min)" />
+      <input id="newServicePrice" type="number" min="0" step="1" class="form-control" placeholder="Price ($)" />
+      <input id="newServiceModality" class="form-control" placeholder="Modality (optional)" />
+      <input id="newServiceTags" class="form-control" placeholder="Comma tags (optional)" />
+      <div style="display:flex; align-items:center; gap:6px;">
+        <input id="newServiceActive" type="checkbox" checked /> <label for="newServiceActive" style="margin:0;">Active</label>
+      </div>
+      <textarea id="newServiceDesc" class="form-control" rows="2" placeholder="Short description"></textarea>
+    </div>
+    <div class="inline-btns" style="margin-top:12px;">
+      <button class="btn btn-success" id="addServiceBtn">Add Service</button>
+      <button class="btn btn-outline-secondary" id="clearServiceBtn">Clear</button>
+    </div>
+  </div>
+
+  <div class="services-filters">
+    <input id="servicesSearch" class="form-control" placeholder="Search service name" />
+    <select id="servicesCategory" class="form-select" style="max-width:220px;">
+      <option value="">All Categories</option>
+    </select>
+    <select id="servicesStatus" class="form-select" style="max-width:160px;">
+      <option value="">All Statuses</option>
+      <option value="active">Active Only</option>
+      <option value="inactive">Inactive Only</option>
+    </select>
+  </div>
+  <div class="services-table-wrap">
+    <table class="services-table" id="servicesTable">
+      <thead>
+        <tr>
+          <th style="width:32px;">#</th>
+          <th>Service</th>
+          <th>Category</th>
+          <th>Duration</th>
+          <th>Price</th>
+          <th>Status</th>
+          <th>Modality</th>
+          <th>Description</th>
+          <th style="width:110px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="servicesTbody">
+        <tr><td colspan="9" style="text-align:center; padding:30px;">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="save-bar">
+    <div class="status" id="servicesStatusMsg">No changes.</div>
+    <div class="inline-btns">
+      <button class="btn btn-secondary" id="resetServicesBtn" disabled>Reset</button>
+      <button class="btn btn-primary" id="saveServicesBtn" disabled>Save Changes</button>
+    </div>
+  </div>
+  <div style="margin-top:16px; font-size:12px; color:#64748b;">Notes: This admin updates service entries (add/remove) and pricing/status fields only. It does not reorganize categories. Removed services are permanently deleted from their section blob after save. Validation enforces unique id & slug and required price/duration.</div>
+</div>
+<div id="servicesSuccess" class="success-toast" role="alert">Services updated successfully.</div>
+<div id="servicesError" class="error-toast" role="alert">Could not save changes. Please retry.</div>
+
+<script>
+(function(){
+  // State containers
+  let catalogItems = [];
+  let filteredItems = [];
+  const addedItems = []; // new service objects
+  const removedIds = new Set(); // composite id strings marked for removal
+  const updatedMap = new Map(); // id -> partial changes (price, active, modality, description)
+  const tbody = document.getElementById('servicesTbody');
+  const searchEl = document.getElementById('servicesSearch');
+  const catEl = document.getElementById('servicesCategory');
+  const statusFilterEl = document.getElementById('servicesStatus');
+  const statusMsgEl = document.getElementById('servicesStatusMsg');
+  const saveBtn = document.getElementById('saveServicesBtn');
+  const resetBtn = document.getElementById('resetServicesBtn');
+  const successToast = document.getElementById('servicesSuccess');
+  const errorToast = document.getElementById('servicesError');
+  // Add form elements
+  const newNameEl = document.getElementById('newServiceName');
+  const newCatEl = document.getElementById('newServiceCategory');
+  const newDurEl = document.getElementById('newServiceDuration');
+  const newPriceEl = document.getElementById('newServicePrice');
+  const newModalityEl = document.getElementById('newServiceModality');
+  const newTagsEl = document.getElementById('newServiceTags');
+  const newActiveEl = document.getElementById('newServiceActive');
+  const newDescEl = document.getElementById('newServiceDesc');
+  const addBtn = document.getElementById('addServiceBtn');
+  const clearBtn = document.getElementById('clearServiceBtn');
+  const toggleAddBtn = document.getElementById('toggleAddServiceBtn');
+  const closeAddBtn = document.getElementById('closeAddServiceBtn');
+  const addFormWrapper = document.getElementById('addServiceForm');
+
+  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function compositeId(base,dur){ return `${base}-${dur}`; }
+  function baseId(item){ const id = item.id || item.slug || ''; const dm = item.duration_minutes || item.durationMinutes; if(!dm) return id; const suffix='-'+dm; return id.endsWith(suffix)? id.slice(0,-suffix.length): id; }
+  function sectionForCategory(cat){ const map={ 'Massage':'massages','Facial':'facials','Facial & Body':'facial-body','Add-On':'addons' }; return map[cat] || null; }
+
+  async function loadCatalog(){
+    try {
+      const res = await fetch('/api/catalog');
+      const data = await res.json();
+      catalogItems = Array.isArray(data.value) ? data.value.filter(i=> i && i.id && i.base_price!=null) : [];
+      buildCategoryOptions();
+      applyFilters();
+    } catch(e){ tbody.innerHTML = '<tr><td colspan="9" class="text-danger">Failed to load.</td></tr>'; }
+  }
+
+  function buildCategoryOptions(){
+    const cats = Array.from(new Set(catalogItems.map(i=> i.category).filter(Boolean))).sort();
+    cats.forEach(c => { const opt=document.createElement('option'); opt.value=c; opt.textContent=c; catEl.appendChild(opt); });
+    cats.forEach(c => { const opt=document.createElement('option'); opt.value=c; opt.textContent=c; newCatEl.appendChild(opt.cloneNode(true)); });
+  }
+
+  function applyFilters(){
+    const q = searchEl.value.trim().toLowerCase();
+    const cat = catEl.value;
+    const status = statusFilterEl.value;
+    filteredItems = catalogItems.filter(item => {
+      const matchesText = !q || (item.service||'').toLowerCase().includes(q) || (item.modality||'').toLowerCase().includes(q);
+      const matchesCat = !cat || item.category === cat;
+      const activeFlag = item.is_active ? 'active' : 'inactive';
+      const matchesStatus = !status || status === activeFlag;
+      return matchesText && matchesCat && matchesStatus;
+    }).sort((a,b)=> (a.service||'').localeCompare(b.service||'') || (a.duration_minutes||0)-(b.duration_minutes||0));
+    renderTable();
+  }
+
+  function renderTable(){
+    if(filteredItems.length === 0 && addedItems.length === 0){ tbody.innerHTML='<tr><td colspan="9" style="text-align:center; padding:30px;">No matches.</td></tr>'; updateStatus(); return; }
+    tbody.innerHTML='';
+    const all = [...filteredItems, ...addedItems];
+    all.forEach((item, idx) => {
+      const tr=document.createElement('tr');
+      const id=item.id;
+      const isRemoved=removedIds.has(id);
+      const isAdded=addedItems.includes(item);
+      const updates=updatedMap.get(id);
+      if(isRemoved) tr.classList.add('row-removed'); else if(isAdded) tr.classList.add('row-added'); else if(updates) tr.classList.add('row-dirty');
+      const priceVal=updates && updates.base_price!=null? updates.base_price:'';
+      const activeFlag = updates && updates.is_active!=null? updates.is_active : item.is_active;
+      tr.innerHTML=`
+        <td data-label="#">${idx+1}</td>
+        <td data-label="Service">${esc(item.service||'')}</td>
+        <td data-label="Category">${esc(item.category||'')}</td>
+        <td data-label="Duration"><input type="number" min="10" step="5" class="form-control dur-input" value="${esc(item.duration_minutes)}" ${isRemoved? 'disabled':''}/></td>
+        <td data-label="Price"><input type="number" min="0" step="1" class="form-control price-input" value="${priceVal}" placeholder="$${esc(item.base_price)}" ${isRemoved? 'disabled':''}/></td>
+        <td data-label="Status"><select class="form-select" ${isRemoved? 'disabled':''}><option value="active" ${activeFlag?'selected':''}>Active</option><option value="inactive" ${!activeFlag?'selected':''}>Inactive</option></select></td>
+        <td data-label="Modality"><input type="text" class="form-control" value="${esc(updates && updates.modality!=null? updates.modality : (item.modality||''))}" ${isRemoved? 'disabled':''}/></td>
+        <td data-label="Description"><textarea class="form-control desc-textarea" rows="1" ${isRemoved? 'disabled':''}>${esc(updates && updates.description!=null? updates.description : (item.description||''))}</textarea></td>
+        <td data-label="Actions">
+          <div class="inline-btns">
+            <button class="btn btn-sm btn-outline-danger" data-remove>${isRemoved? 'Undo':'Remove'}</button>
+            <button class="btn btn-sm btn-outline-secondary" data-revert ${updates? '':'disabled'}>Revert</button>
+          </div>
+        </td>`;
+      const [durInput, priceInput, statusSel, modalityInput, descInput, removeBtn, revertBtn] = [
+        tr.querySelector('.dur-input'),
+        tr.querySelector('.price-input'),
+        tr.querySelector('select'),
+        tr.querySelectorAll('input')[2],
+        tr.querySelector('.desc-textarea'),
+        tr.querySelector('[data-remove]'),
+        tr.querySelector('[data-revert]')
+      ];
+      durInput.addEventListener('input',()=> editField(item,'duration_minutes',Number(durInput.value),tr));
+      priceInput.addEventListener('input',()=> editField(item,'base_price',Number(priceInput.value),tr));
+      statusSel.addEventListener('change',()=> editField(item,'is_active',statusSel.value==='active',tr));
+      modalityInput.addEventListener('input',()=> editField(item,'modality',modalityInput.value,tr));
+      descInput.addEventListener('input',()=> editField(item,'description',descInput.value,tr));
+      descInput.addEventListener('focus',()=> descInput.classList.add('expanded'));
+      descInput.addEventListener('blur',()=> { if(!descInput.value.trim()) descInput.classList.remove('expanded'); });
+      removeBtn.addEventListener('click',()=> toggleRemove(id,tr));
+      revertBtn.addEventListener('click',()=> revertUpdate(id,tr));
+      tbody.appendChild(tr);
+    });
+    updateStatus();
+  }
+
+  function editField(item, field, value, tr){
+    const id=item.id;
+    if(removedIds.has(id)) return; // ignore edits on removed rows
+    const original = { base_price:item.base_price, duration_minutes:item.duration_minutes, is_active:item.is_active, modality:item.modality, description:item.description };
+    const current = updatedMap.get(id) || {};
+    current[field]=value;
+    // Clean up if reverted to original value
+    function equalToOriginal(){
+      const merged={...original,...current};
+      return merged.base_price===original.base_price && merged.duration_minutes===original.duration_minutes && merged.is_active===original.is_active && merged.modality===original.modality && merged.description===original.description;
+    }
+    if(equalToOriginal()){ updatedMap.delete(id); tr.classList.remove('row-dirty'); tr.querySelector('[data-revert]').disabled=true; }
+    else { updatedMap.set(id,current); tr.classList.add('row-dirty'); tr.querySelector('[data-revert]').disabled=false; }
+    updateStatus();
+  }
+
+  function toggleRemove(id,tr){
+    if(removedIds.has(id)){ removedIds.delete(id); tr.classList.remove('row-removed'); tr.querySelector('[data-remove]').textContent='Remove'; }
+    else { removedIds.add(id); tr.classList.add('row-removed'); tr.querySelector('[data-remove]').textContent='Undo'; updatedMap.delete(id); tr.classList.remove('row-dirty'); }
+    updateStatus();
+  }
+  function revertUpdate(id,tr){ if(updatedMap.has(id)){ updatedMap.delete(id); tr.classList.remove('row-dirty'); const inputs=tr.querySelectorAll('input,select'); /* re-render */ applyFilters(); } }
+
+  function updateStatus(){
+    const changeCount = addedItems.length + removedIds.size + updatedMap.size;
+    if(changeCount===0){ statusMsgEl.textContent='No changes.'; saveBtn.disabled=true; resetBtn.disabled=true; window.__servicesDirty=false; }
+    else { statusMsgEl.textContent=`${changeCount} pending change${changeCount>1?'s':''}. Added: ${addedItems.length}, Removed: ${removedIds.size}, Updated: ${updatedMap.size}`; saveBtn.disabled=false; resetBtn.disabled=false; window.__servicesDirty=true; }
+  }
+
+  function clearAddForm(){ [newNameEl,newDurEl,newPriceEl,newModalityEl,newTagsEl,newDescEl].forEach(el=> el.value=''); newActiveEl.checked=true; }
+  function slugify(str){ return String(str||'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); }
+
+  function showAddForm(){ addFormWrapper.style.display='block'; toggleAddBtn.setAttribute('aria-expanded','true'); toggleAddBtn.textContent='Hide New Service'; }
+  function hideAddForm(){ addFormWrapper.style.display='none'; toggleAddBtn.setAttribute('aria-expanded','false'); toggleAddBtn.textContent='Create New Service'; }
+
+  function addService(){
+    const name=newNameEl.value.trim();
+    const cat=newCatEl.value;
+    const dur=Number(newDurEl.value);
+    const price=Number(newPriceEl.value);
+    if(!name || !cat || !dur || !price){ alert('Name, category, duration, price required.'); return; }
+    const base=slugify(name);
+    const id=compositeId(base,dur);
+    if(catalogItems.some(i=> i.id===id) || addedItems.some(i=> i.id===id)){ alert('A service with that duration already exists.'); return; }
+    const item={
+      id,
+      slug:id,
+      service:name,
+      category:cat,
+      duration_minutes:dur,
+      base_price:price,
+      is_active:newActiveEl.checked,
+      modality:newModalityEl.value.trim()||undefined,
+      tags:(newTagsEl.value.trim()? newTagsEl.value.split(/\s*,\s*/).filter(Boolean) : []),
+      description:newDescEl.value.trim()||'',
+      source_array:['services'],
+      contentVector:[]
+    };
+    addedItems.push(item); renderTable(); clearAddForm(); hideAddForm(); }
+
+  function resetChanges(){ addedItems.length=0; removedIds.clear(); updatedMap.clear(); applyFilters(); }
+  function showToast(el){ el.style.display='block'; setTimeout(()=>{ el.style.display='none'; }, 3500); }
+
+  async function saveChanges(){
+    if(addedItems.length===0 && removedIds.size===0 && updatedMap.size===0) return;
+    saveBtn.disabled=true; statusMsgEl.textContent='Saving...';
+    // Build payload
+    const addedPayload = addedItems.map(i=> ({...i}));
+    const removedPayload = Array.from(removedIds.values());
+    const updatedPayload = Array.from(updatedMap.entries()).map(([id,changes])=> ({ id, changes }));
+    try {
+      const res = await fetch('/api/catalog', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ action:'updateServices', added: addedPayload, removed: removedPayload, updated: updatedPayload }) });
+      const json = await res.json().catch(()=>({}));
+      if(!res.ok || !json.ok){ throw new Error(json.error || 'Save failed'); }
+      // Apply changes locally (replace catalogItems with returned current snapshot if provided)
+      if(Array.isArray(json.currentCatalog)){ catalogItems = json.currentCatalog; }
+      addedItems.length=0; removedIds.clear(); updatedMap.clear(); applyFilters(); showToast(successToast); statusMsgEl.textContent='Updated.'; window.__servicesDirty=false;
+      // Invalidate public catalog cache (services.html & chat bot consumers)
+      try { localStorage.setItem('catalogInvalidateAt', Date.now().toString()); } catch {}
+      try { const bc = new BroadcastChannel('catalog-updates'); bc.postMessage({ type:'invalidate', at: Date.now() }); bc.close(); } catch {}
+    } catch(e){ console.error(e); showToast(errorToast); statusMsgEl.textContent='Error saving.'; saveBtn.disabled=false; }
+  }
+
+  // Event bindings
+  searchEl.addEventListener('input', applyFilters);
+  catEl.addEventListener('change', applyFilters);
+  statusFilterEl.addEventListener('change', applyFilters);
+  addBtn.addEventListener('click', addService);
+  clearBtn.addEventListener('click', clearAddForm);
+  saveBtn.addEventListener('click', saveChanges);
+  resetBtn.addEventListener('click', resetChanges);
+  toggleAddBtn.addEventListener('click',()=> {
+    if(addFormWrapper.style.display==='none'){ showAddForm(); }
+    else { hideAddForm(); }
+  });
+  closeAddBtn.addEventListener('click', hideAddForm);
+  loadCatalog();
+})();
+</script>

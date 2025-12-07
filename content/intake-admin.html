@@ -1,0 +1,717 @@
+<style>
+  body { background:#f8f9fb; }
+  .admin-wrapper { max-width:1400px; margin:40px auto; padding:0 20px; }
+  .search-bar { display:flex; gap:10px; margin-bottom:20px; }
+  .results-panel, .detail-panel { background:#fff; border:1px solid #e2e8f0; border-radius:12px; box-shadow:0 2px 4px rgba(0,0,0,.05); }
+  .results-panel { display:flex; flex-direction:column; max-height:76vh; }
+  .results-list-container { overflow-y:auto; padding:8px; flex:1; }
+  .result-item { padding:10px; border-bottom:1px solid #f1f5f9; cursor:pointer; display:flex; gap:10px; align-items:center; }
+  .result-item:hover { background:#f9fafb; transform: translateY(-1px); }
+  .result-item:last-child { border-bottom:none; }
+  .result-item .avatar { width:44px; height:44px; border-radius:50%; background:#e6f4f1; color:#064e45; display:inline-grid; place-items:center; font-weight:700; margin-right:6px; flex-shrink:0; }
+  .result-item .meta { display:flex; flex-direction:column; min-width:0; }
+  .result-item .meta .name { font-weight:700; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .result-item .meta .sub { font-size:0.9rem; color:#475569; display:block; line-height:1.2; }
+  .result-item .meta .muted { font-size:0.8rem; color:#64748b; }
+  .result-item .right { margin-left:auto; text-align:right; font-size:0.85rem; color:#64748b; }
+  .layout { display:grid; gap:20px; grid-template-columns:320px 1fr; }
+  .detail-panel { padding:20px; }
+  .contact-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:8px; }
+  .contact-card { background:#fbfdff; border:1px solid #eef2ff; padding:12px; border-radius:8px; }
+  .contact-row { margin-bottom:8px; }
+  .contact-label { font-size:12px; color:#64748b; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+  .fa-table { width:100%; border-collapse:collapse; margin-top:6px; }
+  .fa-table th { text-align:left; padding:6px 8px; font-size:12px; color:#475569; }
+  .fa-table td { vertical-align:top; padding:6px 8px; }
+  .fa-focus { background:#bbf7d0; color:#064e45; padding:6px 8px; border-radius:6px; display:inline-block; font-weight:700; }
+  .fa-avoid { background:#fecaca; color:#7a0710; padding:6px 8px; border-radius:6px; display:inline-block; font-weight:700; }
+  .fa-empty { color:#94a3b8; font-style:italic; }
+  .physical-pref { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:8px; }
+  .pref-column { background:#fff; border:1px solid #eef2ff; padding:10px; border-radius:8px; }
+  .pref-column h6 { margin:0 0 8px 0; font-size:13px; color:#334155; }
+  .pref-item { display:flex; gap:10px; align-items:center; padding:6px 4px; border-radius:6px; }
+  .pref-icon { width:28px; height:28px; display:inline-grid; place-items:center; border-radius:6px; background:#f1f5f9; color:#0f172a; }
+  .pref-label { font-weight:600; color:#0f172a; }
+  .pref-item.focus .pref-icon { background:linear-gradient(90deg,#b7f3d6,#8be6c0); color:#064e45; }
+  .pref-item.avoid .pref-icon { background:linear-gradient(90deg,#ffd6d6,#ffb3b3); color:#7a0710; }
+  .physical-pref-header { font-size:1.15rem; font-weight:700; margin-bottom:8px; color:#0f172a; }
+  .section-header { font-size:1.15rem; font-weight:700; margin-bottom:8px; color:#0f172a; }
+  .health-grid { display:grid; gap:8px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-top:6px; }
+  .health-item { background:#fff; border:1px solid #eef2ff; padding:8px; border-radius:8px; }
+  .health-item .label { font-weight:700; color:#334155; font-size:13px; }
+  .health-item .value { color:#0f172a; margin-top:4px; }
+  .contact-label i { color:#0f172a; margin-right:8px; }
+  .fa-table-wrap { overflow:auto; -webkit-overflow-scrolling:touch; }
+  @media (max-width: 576px) {
+    .fa-table { min-width:420px; }
+  }
+  @media (max-width: 1024px){ .layout { grid-template-columns:1fr; } .results-panel { max-height:30vh; } .result-item { align-items:flex-start; } }
+  .event-card { border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-bottom:12px; background:#fff; position:relative; }
+  .event-badge { font-size:12px; padding:2px 8px; border-radius:20px; background:#eef2ff; color:#3730a3; margin-right:6px; }
+  .delete-btn { position:absolute; top:8px; right:8px; }
+  .small-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:#64748b; }
+  .empty { padding:20px; text-align:center; color:#64748b; }
+  .focus-tags span { display:inline-block; background:#dcfce7; color:#166534; padding:2px 8px; border-radius:14px; font-size:11px; margin:2px; }
+  .avoid-tags span { display:inline-block; background:#fee2e2; color:#991b1b; padding:2px 8px; border-radius:14px; font-size:11px; margin:2px; }
+  .focus-pill { display:inline-block; background:linear-gradient(90deg,#b7f3d6,#8be6c0); color:#064e45; padding:6px 10px; border-radius:18px; font-weight:700; margin:4px; box-shadow:0 1px 2px rgba(2,6,23,.06); }
+  .avoid-pill { display:inline-block; background:linear-gradient(90deg,#ffd6d6,#ffb3b3); color:#7a0710; padding:6px 10px; border-radius:18px; font-weight:700; margin:4px; box-shadow:0 1px 2px rgba(2,6,23,.04); }
+  .health-table { width:100%; border-collapse:collapse; margin-top:6px; }
+  .health-table td { padding:6px 8px; border-top:1px solid #eef2ff; vertical-align:top; }
+  .health-table .label { font-weight:700; color:#334155; width:180px; white-space:nowrap; }
+  .health-empty { color:#94a3b8; font-style:italic; }
+  .pagination-controls { padding:12px 8px; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .pagination-controls .info { font-size:12px; color:#64748b; }
+  .pagination-controls .buttons { display:flex; gap:6px; }
+  .pagination-controls button { font-size:12px; padding:4px 10px; }
+  .pagination-controls button:disabled { opacity:0.5; cursor:not-allowed; }
+  .result-item.active { background:#e0f2fe; box-shadow:inset 0 0 0 1px #bae6fd; }
+</style>
+
+<div class="admin-wrapper">
+  <h1 class="mb-3">Client Records</h1>
+  <p class="text-muted mb-4">Search, view, and manage client intake & consent history. Authentication pending future Entra ID integration.</p>
+  <div class="search-bar">
+    <input id="searchInput" class="form-control" placeholder="Search by name, phone, or email" />
+    <button id="searchBtn" class="btn btn-primary">Search</button>
+  </div>
+  <div class="layout">
+    <div class="results-panel" id="resultsPanel">
+      <div class="results-list-container">
+        <div id="resultsList" class="list-group"></div>
+      </div>
+      <div id="paginationControls" style="display:none;" class="pagination-controls">
+        <div class="info"><span id="pageInfo"></span></div>
+        <div class="buttons">
+          <button id="prevBtn" class="btn btn-sm btn-outline-secondary">Previous</button>
+          <button id="nextBtn" class="btn btn-sm btn-outline-secondary">Next</button>
+        </div>
+      </div>
+    </div>
+    <div class="detail-panel p-3" id="detailPanel">
+      <div id="detailContent" class=""> <div class="empty">No client selected.</div> </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Intake Admin UI */
+(function(){
+  const searchInput = document.getElementById('searchInput');
+  const searchBtn = document.getElementById('searchBtn');
+  const resultsList = document.getElementById('resultsList');
+  const detailContent = document.getElementById('detailContent');
+  const paginationControls = document.getElementById('paginationControls');
+  const pageInfo = document.getElementById('pageInfo');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  let pendingHighlightEventId = null;
+  let currentPage = 0;
+  let pageSize = 10;
+  let totalRecords = 0;
+  // Navigation state for client list
+  let currentResults = [];
+  let currentSelectedIndex = -1;
+
+  function apiSearchUrl(q){ return `/api/intake-admin/search?query=${encodeURIComponent(q)}`; }
+  function apiClientUrl(id){ return `/api/intake-admin/client/${encodeURIComponent(id)}`; }
+  function apiDeleteUrl(cid,eid){ return `/api/intake-admin/client/${encodeURIComponent(cid)}/${encodeURIComponent(eid)}`; }
+  function apiRecentUrl(limit, offset){ return `/api/intake-admin/recent?limit=${limit}&offset=${offset}`; }
+
+  function fmtDate(iso){ if(!iso) return ''; const d=new Date(iso); if(isNaN(d)) return iso; return d.toLocaleString(); }
+  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  async function doSearch(){
+    const q = searchInput.value.trim();
+    resultsList.innerHTML = '<div class="empty p-3">Searching...</div>';
+    paginationControls.style.display = 'none';
+    if(!q){ resultsList.innerHTML = '<div class="empty p-3">Enter search text.</div>'; return; }
+    try {
+      const res = await fetch(apiSearchUrl(q));
+      const json = await res.json();
+      if(!Array.isArray(json) || json.length===0){ resultsList.innerHTML = '<div class="empty p-3">No matches.</div>'; return; }
+      resultsList.innerHTML = '';
+      currentResults = json.slice();
+      currentSelectedIndex = -1;
+      json.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'result-item list-group-item list-group-item-action';
+        div.dataset.clientId = item.clientId;
+        div.dataset.index = String(idx);
+        const initials = `${(item.firstName||'').slice(0,1)}${(item.lastName||'').slice(0,1)}`.toUpperCase();
+        let displayName = `${esc(item.firstName)} ${esc(item.lastName)}`;
+        if (item.preferredName) {
+          displayName += ` <span style=\"color:#64748b; font-size:0.9em;\">(${esc(item.preferredName)})</span>`;
+        }
+        if (item.pronouns) {
+          displayName += ` <span style=\"color:#94a3b8; font-size:0.75em; font-weight:600;\">${esc(item.pronouns)}</span>`;
+        }
+        div.innerHTML = `
+          <div class="avatar">${esc(initials)}</div>
+          <div class="meta">
+            <div class="name">${displayName}</div>
+            <div class="sub">${esc(item.phone||'')}</div>
+            <div class="sub"><small class="muted">${esc(item.email||'')}</small></div>
+          </div>
+          <div class="right">${fmtDate(item.lastUpdatedUtc)}</div>`;
+        div.addEventListener('click', () => {
+          currentSelectedIndex = idx;
+          highlightSelectedResult();
+          loadClient(item.clientId);
+        });
+        resultsList.appendChild(div);
+      });
+    } catch(e){ resultsList.innerHTML = `<div class="empty p-3">Error: ${esc(e.message)}</div>`; }
+  }
+
+  async function loadClient(clientId){
+    detailContent.innerHTML = '<div class="empty">Loading client...</div>';
+    try {
+      const res = await fetch(apiClientUrl(clientId));
+      if(res.status===404){ detailContent.innerHTML = '<div class="empty">Client not found.</div>'; return; }
+      const doc = await res.json();
+      renderClient(doc);
+      if (pendingHighlightEventId) {
+        setTimeout(() => highlightEventCard(pendingHighlightEventId), 50);
+      }
+    } catch(e){ detailContent.innerHTML = `<div class="empty">Error loading: ${esc(e.message)}</div>`; }
+  }
+
+  function renderClient(doc){
+  const p = doc.primary || {};
+     function formatPhoneDisplay(raw){
+       if(!raw) return '';
+       if(raw.indexOf('(') !== -1) return raw;
+       const d = String(raw||'').replace(/\D/g,'');
+       if(d.length === 11 && d.startsWith('1')) {
+         return `(${d.slice(1,4)}) ${d.slice(4,7)}-${d.slice(7,11)}`;
+       }
+       if(d.length === 10) return `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6,10)}`;
+       return raw;
+     }
+     function addressDisplay(p){
+       if(p.addressStructured){
+         const s = p.addressStructured;
+         const parts = [];
+         if(s.street) parts.push(esc(s.street));
+         const cityState = [s.city||'', s.state||''].filter(Boolean).join(', ');
+         if(cityState) parts.push(esc(cityState));
+         if(s.postalCode) parts.push(esc(s.postalCode));
+         return parts.join(' • ');
+       }
+       return esc(p.address||'');
+     }
+    const events = Array.isArray(doc.intakeEvents) ? doc.intakeEvents.slice().sort((a,b)=> (b.submittedAtUtc||'').localeCompare(a.submittedAtUtc||'')) : [];
+    const latestSubmitted = events && events.length ? events[0].submittedAtUtc : '';
+    
+    // Header display name and navigation
+    let headerName = `${esc(p.firstName)} ${esc(p.lastName)}`;
+    if (p.preferredName && p.preferredName.trim()) {
+      headerName += ` (${esc(p.preferredName.trim())})`;
+    }
+    const pronounsLine = (p.pronouns && p.pronouns.trim()) ? `<div style="margin-top:2px; font-size:0.75rem; color:#64748b; font-weight:600;">${esc(p.pronouns.trim())}</div>` : '';
+    const navButtons = `<div style="display:flex; gap:6px;">`+
+      `<button class=\"btn btn-sm btn-outline-secondary\" id=\"nav-prev-btn\">Prev</button>`+
+      `<button class=\"btn btn-sm btn-outline-secondary\" id=\"nav-next-btn\">Next</button>`+
+      `</div>`;
+    
+    let html = `<div>
+      <h3 style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+        <span>${headerName}</span>
+        ${navButtons}
+      </h3>
+      ${pronounsLine}
+      <div class="contact-grid" style="margin-top:${(p.preferredName||p.pronouns) ? '8px' : '0'}">
+        <div class="contact-card">
+          <div class="contact-row"><div class="contact-label"><i class="fas fa-phone" aria-hidden="true"></i>Phone</div><div>${esc(formatPhoneDisplay(p.phone||p.phoneFormatted||''))}</div></div>
+          <div class="contact-row"><div class="contact-label"><i class="fas fa-envelope" aria-hidden="true"></i>Email</div><div>${esc(p.email||'')}</div></div>
+          <div class="contact-row"><div class="contact-label"><i class="fas fa-calendar-alt" aria-hidden="true"></i>DOB</div><div>${esc(p.dob||'')}</div></div>
+        </div>
+        <div class="contact-card">
+          <div class="contact-row"><div class="contact-label">Address</div><div>${addressDisplay(p)||'<span class="text-muted">Not provided</span>'}</div></div>
+          <div class="contact-row"><div class="contact-label">Submitted</div><div>${fmtDate(latestSubmitted)}</div></div>
+          <div class="contact-row"><div class="contact-label">Last Updated</div><div>${fmtDate(doc.lastUpdatedUtc||doc._lastUpdatedUtc||'')}</div></div>
+        </div>
+      </div>
+      <div style="margin-top:10px;">
+        <button class="btn btn-sm btn-outline-primary" id="edit-contact-btn">Edit contact info</button>
+      </div>`;
+    
+    // Display duplicate flags if present
+    const flags = doc.duplicateFlags || {};
+    if (flags.possibleDuplicate) {
+      html += `<div style="margin-top:12px; padding:12px; background:#fef2f2; border:1px solid #fca5a5; border-radius:8px;">
+        <div style="font-weight:700; color:#991b1b; margin-bottom:4px;">⚠️ Possible Duplicate</div>
+        <div style="font-size:0.9rem; color:#7f1d1d;">
+          This record may be a duplicate. ${flags.reason === 'dob_conflict' ? 'Name, phone, and email match an existing client, but date of birth differs.' : ''}
+          ${flags.duplicateOfClientId ? `<br><a href="?clientId=${esc(flags.duplicateOfClientId)}" style="color:#991b1b; text-decoration:underline;">View possible original record</a>` : ''}
+        </div>
+      </div>`;
+    }
+    if (flags.sharedContact && flags.sharedWithClientIds && flags.sharedWithClientIds.length > 0) {
+      html += `<div style="margin-top:12px; padding:12px; background:#eff6ff; border:1px solid #60a5fa; border-radius:8px;">
+        <div style="font-weight:700; color:#1e40af; margin-bottom:4px;">ℹ️ Shared Contact Information</div>
+        <div style="font-size:0.9rem; color:#1e3a8a;">
+          This client shares phone or email with ${flags.sharedWithClientIds.length} other client(s):
+          <ul style="margin:4px 0 0 20px; padding:0;">
+            ${flags.sharedWithClientIds.map(cid => `<li><a href="?clientId=${esc(cid)}" style="color:#1e40af; text-decoration:underline;">${esc(cid)}</a></li>`).join('')}
+          </ul>
+        </div>
+      </div>`;
+    }
+    
+    html += `<div id="edit-contact-form" style="display:none; margin-top:12px; border:1px solid #e2e8f0; padding:12px; border-radius:8px; background:#fff;">
+        <h6 class="mb-2" style="font-weight:700;">Update Contact</h6>
+        <div class="row g-2">
+          <div class="col-sm-6"><input class="form-control" id="edit-firstName" placeholder="First name" value="${esc(p.firstName||'')}" /></div>
+          <div class="col-sm-6"><input class="form-control" id="edit-lastName" placeholder="Last name" value="${esc(p.lastName||'')}" /></div>
+          <div class="col-sm-6"><input class="form-control" id="edit-email" placeholder="Email" value="${esc(p.email||'')}" /></div>
+          <div class="col-sm-6"><input class="form-control" id="edit-phone" placeholder="Phone" value="${esc(p.phone||'')}" /></div>
+        </div>
+        <div style="margin-top:10px; display:flex; gap:8px;">
+          <button class="btn btn-sm btn-success" id="save-contact-btn">Save</button>
+          <button class="btn btn-sm btn-secondary" id="cancel-contact-btn">Cancel</button>
+        </div>
+        <div class="small text-muted mt-2">First & last name required. Email/phone optional. Changes do not alter underlying client id.</div>
+      </div>
+    </div>
+    <div style="margin-top:12px; margin-bottom:8px; color:#64748b;">Intake events: <strong>${events.length}</strong></div>
+    <h5 class="mb-2">Intake Events</h5>`;
+    if(events.length===0){ html += '<div class="empty">No intake events.</div>'; }
+    events.forEach(evt => {
+      html += renderEvent(evt, doc.clientId, `${esc(p.firstName)} ${esc(p.lastName)}`);
+    });
+    detailContent.innerHTML = html;
+    detailContent.querySelectorAll('[data-delete-event]').forEach(btn => {
+      btn.addEventListener('click', () => deleteEvent(btn.dataset.cid, btn.dataset.eid, btn.dataset.name));
+    });
+    detailContent.querySelectorAll('[data-edit-note]').forEach(btn => {
+      btn.addEventListener('click', () => toggleNoteEditor(btn.dataset.eid));
+    });
+    detailContent.querySelectorAll('[data-save-note]').forEach(btn => {
+      btn.addEventListener('click', () => saveNote(btn.dataset.cid, btn.dataset.eid));
+    });
+    // Contact edit handlers
+    const editBtn = document.getElementById('edit-contact-btn');
+    const formEl = document.getElementById('edit-contact-form');
+    if (editBtn && formEl) {
+      editBtn.addEventListener('click', () => { formEl.style.display = formEl.style.display === 'none' ? 'block' : 'none'; });
+      const cancelBtn = document.getElementById('cancel-contact-btn');
+      if (cancelBtn) cancelBtn.addEventListener('click', () => { formEl.style.display = 'none'; });
+      const saveBtn = document.getElementById('save-contact-btn');
+      if (saveBtn) saveBtn.addEventListener('click', () => doSaveContact(doc.clientId));
+    }
+    // Navigation buttons state & handlers
+    const prevNavBtn = document.getElementById('nav-prev-btn');
+    const nextNavBtn = document.getElementById('nav-next-btn');
+    if (prevNavBtn) {
+      prevNavBtn.disabled = currentSelectedIndex <= 0;
+      prevNavBtn.addEventListener('click', () => changeClient(-1));
+    }
+    if (nextNavBtn) {
+      nextNavBtn.disabled = currentSelectedIndex >= currentResults.length - 1;
+      nextNavBtn.addEventListener('click', () => changeClient(1));
+    }
+    highlightSelectedResult();
+  }
+
+  function renderEvent(evt, clientId, primaryName){
+    const focus = (evt.bodyMap && Array.isArray(evt.bodyMap.focusAreas)) ? evt.bodyMap.focusAreas : [];
+    const avoid = (evt.bodyMap && Array.isArray(evt.bodyMap.avoidAreas)) ? evt.bodyMap.avoidAreas : [];
+    const health = evt.health || {};
+    const couples = evt.context && evt.context.isCouples ? 'Yes' : 'No';
+    const serviceType = evt.serviceType || {};
+    const regionMap = {
+      rightleg: ['Right Leg','right-leg'],
+      leftleg: ['Left Leg','left-leg'],
+      right_leg: ['Right Leg','right-leg'],
+      left_leg: ['Left Leg','left-leg'],
+      rightarm: ['Right Arm','right-arm'],
+      leftarm: ['Left Arm','left-arm'],
+      legs: ['Legs','legs'],
+      arms: ['Arms','arms'],
+      shoulders: ['Shoulders','shoulders'],
+      shoulder: ['Shoulder','shoulders'],
+      neck: ['Neck','upper-neck'],
+      upperneck: ['Upper Neck','upper-neck'],
+      upper_neck: ['Upper Neck','upper-neck'],
+      head: ['Head','head'],
+      upperback: ['Upper Back','upper-back'],
+      lowerback: ['Lower Back','lower-back'],
+      midback: ['Mid Back','mid-back'],
+      mid_back: ['Mid Back','mid-back'],
+      back: ['Back','mid-back'],
+      hips: ['Hips','hips'],
+      feet: ['Feet','feet'],
+      hands: ['Hands','hands'],
+      face: ['Face','head'],
+      chest: ['Chest','chest'],
+      abdomen: ['Abdomen','abdomen']
+    };
+    function humanizeKey(k){
+      if(!k) return '';
+      const explicit = {
+        'dob': 'Date of birth',
+        'phone': 'Phone',
+        'email': 'Email',
+        'lowerback': 'Lower Back',
+        'upperback': 'Upper Back',
+        'upper_neck': 'Upper Neck',
+        'mid_back': 'Mid Back',
+        'right_leg': 'Right Leg',
+        'left_leg': 'Left Leg'
+      };
+      const lk = String(k||'').trim();
+      if(explicit[lk]) return explicit[lk];
+      let s = lk.replace(/_/g,' ');
+      s = s.replace(/([a-z\d])([A-Z])/g, '$1 $2');
+      s = s.split(/\s+/).map(word => word.length ? (word.charAt(0).toUpperCase() + word.slice(1)) : '').join(' ');
+      return s || k;
+    }
+    function mapRegion(item){
+      if(!item) return {label: item, image: null};
+      const key = String(item).toLowerCase().replace(/[^a-z]/g,'');
+      if(regionMap[key]) return { label: regionMap[key][0], image: regionMap[key][1] };
+      return { label: humanizeKey(item), image: null };
+    }
+
+    let physicalHtml = '';
+    if((focus && focus.length) || (avoid && avoid.length) || (evt.notes && evt.notes.bodyNotes)){
+      const focusItems = (focus||[]).map(f => {
+        const m = mapRegion(f);
+        const imgHtml = m.image ? `<img src="/images/intakeadmin/${m.image}-green.svg" alt="${esc(m.label)}" style="width:32px;height:32px;" />` : '';
+        return `<div class="pref-item focus"><div class="pref-icon">${imgHtml}</div><div class="pref-label">${esc(m.label)}</div></div>`;
+      }).join('');
+      const avoidItems = (avoid||[]).map(a => {
+        const m = mapRegion(a);
+        const imgHtml = m.image ? `<img src="/images/intakeadmin/${m.image}-red.svg" alt="${esc(m.label)}" style="width:32px;height:32px;" />` : '';
+        return `<div class="pref-item avoid"><div class="pref-icon">${imgHtml}</div><div class="pref-label">${esc(m.label)}</div></div>`;
+      }).join('');
+      const focusList = focusItems ? `<div class="pref-list">${focusItems}</div>` : '<div class="fa-empty">None noted</div>';
+      const avoidList = avoidItems ? `<div class="pref-list">${avoidItems}</div>` : '<div class="fa-empty">None noted</div>';
+      
+      // Add body notes section if present
+      const bodyNotesHtml = (evt.notes && evt.notes.bodyNotes) ? 
+        `<div style="margin-top:12px; padding:10px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:6px;">
+          <div style="font-size:0.75rem; font-weight:600; color:#6b7280; margin-bottom:4px;">ADDITIONAL DETAILS</div>
+          <div style="font-size:0.9rem; color:#111827; line-height:1.5;">${esc(evt.notes.bodyNotes)}</div>
+        </div>` : '';
+      
+      physicalHtml = `<div><div class="physical-pref-header" style="color:#0d9488;">Customer Physical Preferences</div><div class="physical-pref"><div class="pref-column"><h6>Focus on these areas</h6>${focusList}</div><div class="pref-column"><h6>Avoid these areas</h6>${avoidList}</div></div>${bodyNotesHtml}</div>`;
+    }
+    // Build health display with special handling for detail fields
+    let healthItemsHtml = '';
+    const processedKeys = new Set();
+    
+    // Process main yes/no questions with their details
+    if (health.allergiesOilLotion) {
+      let valueHtml = esc(health.allergiesOilLotion);
+      if (health.allergiesOilLotion === 'yes' && health.allergyDetails) {
+        valueHtml = `Yes <span style="font-size:0.85rem; color:#6b7280;">— ${esc(health.allergyDetails)}</span>`;
+      }
+      healthItemsHtml += `<div class="health-item"><div class="label">Allergies Oil Lotion</div><div class="value">${valueHtml}</div></div>`;
+      processedKeys.add('allergiesOilLotion');
+      processedKeys.add('allergyDetails');
+    }
+    
+    if (health.recentSurgeries) {
+      let valueHtml = esc(health.recentSurgeries);
+      if (health.recentSurgeries === 'yes' && (health.surgeryType || health.surgeryDate)) {
+        const details = [health.surgeryType, health.surgeryDate].filter(Boolean).join(', ');
+        valueHtml = `Yes <span style="font-size:0.85rem; color:#6b7280;">— ${esc(details)}</span>`;
+      }
+      healthItemsHtml += `<div class="health-item"><div class="label">Recent Surgeries</div><div class="value">${valueHtml}</div></div>`;
+      processedKeys.add('recentSurgeries');
+      processedKeys.add('surgeryType');
+      processedKeys.add('surgeryDate');
+    }
+    
+    if (health.recentTraumaInjury) {
+      let valueHtml = esc(health.recentTraumaInjury);
+      if (health.recentTraumaInjury === 'yes' && health.injuryDetails) {
+        valueHtml = `Yes <span style="font-size:0.85rem; color:#6b7280;">— ${esc(health.injuryDetails)}</span>`;
+      }
+      healthItemsHtml += `<div class="health-item"><div class="label">Recent Trauma Injury</div><div class="value">${valueHtml}</div></div>`;
+      processedKeys.add('recentTraumaInjury');
+      processedKeys.add('injuryDetails');
+    }
+    
+    // Process remaining health fields
+    Object.entries(health || {}).forEach(([k, v]) => {
+      if (processedKeys.has(k) || v === undefined || v === null || String(v).trim() === '') return;
+      const label = humanizeKey(k);
+      const valueHtml = esc(v);
+      healthItemsHtml += `<div class="health-item"><div class="label">${label}</div><div class="value">${valueHtml}</div></div>`;
+    });
+    
+    const healthHtml = healthItemsHtml ?
+      `<div class="health-grid">${healthItemsHtml}</div>`
+      : `<div class="health-empty">No health data provided.</div>`;
+    
+    // Service type badges (hot stone only)
+    let serviceTypeBadges = '';
+    if (serviceType.hotStone) {
+      const ack = serviceType.hotStoneAcknowledged ? ' ✓' : '';
+      serviceTypeBadges += `<span class="event-badge" style="background-color:#f97316; color:white;">Hot Stone${ack}</span>`;
+    }
+    
+    // Pregnancy Information section
+    let pregnancyHtml = '';
+    if (serviceType.prenatal) {
+      const trimesterText = serviceType.prenatalTrimester || 'Not specified';
+      // Color-code trimester based on safety level
+      let trimesterColor = '#6b7280'; // default gray
+      let trimesterBg = 'transparent';
+      if (trimesterText.toLowerCase().includes('first')) {
+        trimesterColor = '#FCA5A5'; // Soft red - highest caution
+        trimesterBg = '#FEF2F2';
+      } else if (trimesterText.toLowerCase().includes('second')) {
+        trimesterColor = '#10B981'; // Emerald green - safest
+        trimesterBg = '#ECFDF5';
+      } else if (trimesterText.toLowerCase().includes('third')) {
+        trimesterColor = '#FBBF24'; // Golden amber - medium caution
+        trimesterBg = '#FFFBEB';
+      }
+      pregnancyHtml = `<div class="mb-2"><div class="section-header" style="color:#ec4899;">Pregnancy Information</div><div class="health-grid"><div class="health-item"><div class="label">Receiving Prenatal Massage</div><div class="value">Yes</div></div><div class="health-item" style="background:${trimesterBg};"><div class="label">Current Trimester</div><div class="value" style="color:${trimesterColor}; font-weight:700;">${esc(trimesterText)}</div></div></div></div>`;
+    }
+    
+    return `<div class="event-card" id="event-${esc(evt.eventId)}">
+      <div class="mb-1"><span class="event-badge">${esc(evt.eventType)}</span><span class="event-badge">${esc(evt.source)}</span>${serviceTypeBadges}</div>
+      <div class="small text-muted mb-2">Submitted: ${fmtDate(evt.submittedAtUtc)} • Couples: ${couples}</div>
+      ${ physicalHtml }
+      ${ pregnancyHtml }
+      <div class="mb-2"><div class="section-header" style="color:#1d4ed8;">Health Concerns</div><div>${healthHtml}</div></div>
+        <div class="mb-2"><div class="small-label">Admin notes</div>
+          <div>${renderAdminNotes(evt.notes)}</div>
+        </div>
+        <div class="mb-2">
+          <button class="btn btn-sm btn-outline-secondary" data-edit-note data-eid="${esc(evt.eventId)}">Edit notes</button>
+        </div>
+        <div class="mb-2" id="note-editor-${esc(evt.eventId)}" style="display:none;">
+          <textarea class="form-control" id="note-text-${esc(evt.eventId)}" rows="3" placeholder="Add admin note (required)"></textarea>
+          <div style="margin-top:6px; display:flex; gap:8px; align-items:center;">
+            <input class="form-control" id="note-initials-${esc(evt.eventId)}" placeholder="Your initials (required)" style="width:160px;" />
+            <button class="btn btn-sm btn-primary" data-save-note data-cid="${esc(clientId)}" data-eid="${esc(evt.eventId)}">Save note</button>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-outline-danger delete-btn" data-delete-event data-cid="${esc(clientId)}" data-eid="${esc(evt.eventId)}" data-name="${esc(primaryName)}">Delete this intake</button>
+        <div style="position:absolute; bottom:8px; right:8px; font-size:11px; color:#94a3b8; font-family:monospace;">${esc(evt.eventId)}</div>
+      </div>`;
+    }
+
+    function renderAdminNotes(notes){
+      if(!notes) return '<em class="text-muted">No admin notes</em>';
+      const arr = notes.adminUpdates || [];
+      if(arr.length===0) return '<em class="text-muted">No admin notes</em>';
+      return arr.map(n => `<div class="mb-1"><strong>${esc(n.initials)}</strong> <span class="text-muted small">${fmtDate(n.updatedAtUtc)}</span><div>${esc(n.text)}</div></div>`).join('');
+    }
+
+    function toggleNoteEditor(eventId){
+      const el = document.getElementById(`note-editor-${eventId}`);
+      if(!el) return;
+      el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+    }
+
+    async function saveNote(clientId, eventId){
+      const textEl = document.getElementById(`note-text-${eventId}`);
+      const initEl = document.getElementById(`note-initials-${eventId}`);
+      if(!textEl || !initEl) { alert('Editor not found'); return; }
+      const note = textEl.value.trim();
+      const initials = initEl.value.trim();
+      if(!note){ alert('Please enter a note.'); return; }
+      if(!initials){ alert('Please enter your initials.'); return; }
+      try {
+        const res = await fetch(`/api/intake-admin/client/${encodeURIComponent(clientId)}/event/${encodeURIComponent(eventId)}/note`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note, initials })
+        });
+        if(!res.ok){ const j = await res.json().catch(()=>null); alert('Save failed: ' + (j && j.error ? j.error : res.status)); return; }
+        await loadClient(clientId);
+      } catch(e){ alert('Error: '+ e.message); }
+    }
+
+  function highlightEventCard(eventId){
+    try {
+      const el = document.getElementById(`event-${eventId}`);
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const prev = el.style.boxShadow;
+      el.style.boxShadow = '0 0 0 3px rgba(16,185,129,.35)';
+      setTimeout(() => { el.style.boxShadow = prev; }, 2000);
+    } catch { /* no-op */ }
+  }
+
+  async function doSaveContact(clientId){
+    try {
+      const firstName = document.getElementById('edit-firstName').value.trim();
+      const lastName = document.getElementById('edit-lastName').value.trim();
+      const email = document.getElementById('edit-email').value.trim();
+      const phone = document.getElementById('edit-phone').value.trim();
+      if(!firstName || !lastName){ alert('First and last name required'); return; }
+      const rsp = await fetch(`/api/intake-admin/client/${encodeURIComponent(clientId)}/primary`, {
+        method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ firstName, lastName, email, phone })
+      });
+      if(!rsp.ok){ const j = await rsp.json().catch(()=>null); alert('Update failed: ' + (j && j.error ? j.error : rsp.status)); return; }
+      await loadClient(clientId);
+    } catch(e){ alert('Error: '+ e.message); }
+  }
+
+  async function deleteEvent(clientId, eventId, expectedName){
+    const promptMsg = `To confirm deletion, type the full name exactly as shown: "${expectedName}"\n\nThis action cannot be undone.`;
+    const typed = window.prompt(promptMsg, '');
+    if(typed === null) return;
+    if(String(typed).trim().toLowerCase() !== String(expectedName||'').trim().toLowerCase()){
+      alert('Name did not match. Delete cancelled.');
+      return;
+    }
+    try {
+      const res = await fetch(apiDeleteUrl(clientId,eventId), { method:'DELETE' });
+      if(res.status===200){ loadClient(clientId); }
+      else { alert('Delete failed'); }
+    } catch(e){ alert('Error: '+ e.message); }
+  }
+
+  searchBtn.addEventListener('click', doSearch);
+  searchInput.addEventListener('keypress', e => { if(e.key==='Enter') doSearch(); });
+
+  (function initFromQuery(){
+    try {
+      const p = new URLSearchParams(window.location.search);
+      const cid = p.get('clientId');
+      const eid = p.get('eventId');
+      if (cid) {
+        if (eid) pendingHighlightEventId = eid;
+        loadClient(cid);
+        return;
+      }
+      loadRecent();
+    } catch { /* ignore */ }
+  })();
+
+  async function loadRecent(page = 0){
+    currentPage = page;
+    const offset = page * pageSize;
+    resultsList.innerHTML = '<div class="empty p-3">Loading recent...</div>';
+    paginationControls.style.display = 'none';
+    try{
+      const res = await fetch(apiRecentUrl(pageSize, offset));
+      if(!res.ok) { resultsList.innerHTML = '<div class="empty p-3">Failed to load recent.</div>'; return; }
+      const data = await res.json();
+      const arr = data.items || [];
+      totalRecords = data.total || 0;
+      currentResults = arr.slice();
+      currentSelectedIndex = -1;
+      
+      if(!Array.isArray(arr) || arr.length===0){ 
+        resultsList.innerHTML = '<div class="empty p-3">No recent records.</div>'; 
+        return; 
+      }
+      
+      resultsList.innerHTML = '';
+      arr.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'result-item list-group-item list-group-item-action';
+        div.dataset.clientId = item.clientId;
+        div.dataset.index = String(idx);
+        const initials = `${(item.firstName||'').slice(0,1)}${(item.lastName||'').slice(0,1)}`.toUpperCase();
+        let displayName = `${esc(item.firstName)} ${esc(item.lastName)}`;
+        if (item.preferredName) {
+          displayName += ` <span style=\"color:#64748b; font-size:0.9em;\">(${esc(item.preferredName)})</span>`;
+        }
+        if (item.pronouns) {
+          displayName += ` <span style=\"color:#94a3b8; font-size:0.75em; font-weight:600;\">${esc(item.pronouns)}</span>`;
+        }
+        div.innerHTML = `
+          <div class="avatar">${esc(initials)}</div>
+          <div class="meta">
+            <div class="name">${displayName}</div>
+            <div class="sub">${esc(item.phone||'')}</div>
+            <div class="sub"><small class="muted">${esc(item.email||'')}</small></div>
+          </div>
+          <div class="right">${fmtDate(item.lastUpdatedUtc)}</div>`;
+        div.addEventListener('click', () => {
+          currentSelectedIndex = idx;
+          highlightSelectedResult();
+          loadClient(item.clientId);
+        });
+        resultsList.appendChild(div);
+      });
+      
+      // Update pagination controls
+      updatePaginationControls();
+      
+      // Load first client if on first page
+      const first = arr[0]; 
+      if(first && page === 0){
+        currentSelectedIndex = 0;
+        highlightSelectedResult();
+        loadClient(first.clientId);
+      }
+    } catch(e){ 
+      resultsList.innerHTML = `<div class="empty p-3">Error: ${esc(e.message)}</div>`; 
+    }
+  }
+  
+  function updatePaginationControls(){
+    const start = (currentPage * pageSize) + 1;
+    const end = Math.min((currentPage + 1) * pageSize, totalRecords);
+    pageInfo.textContent = `${start}-${end} of ${totalRecords}`;
+    
+    prevBtn.disabled = currentPage === 0;
+    nextBtn.disabled = (currentPage + 1) * pageSize >= totalRecords;
+    
+    paginationControls.style.display = totalRecords > pageSize ? 'flex' : 'none';
+  }
+  
+  prevBtn.addEventListener('click', () => {
+    if (currentPage > 0) loadRecent(currentPage - 1);
+  });
+  
+  nextBtn.addEventListener('click', () => {
+    if ((currentPage + 1) * pageSize < totalRecords) loadRecent(currentPage + 1);
+  });
+
+  function highlightSelectedResult(){
+    const items = resultsList.querySelectorAll('.result-item');
+    items.forEach(it => {
+      if (Number(it.dataset.index) === currentSelectedIndex) it.classList.add('active');
+      else it.classList.remove('active');
+    });
+  }
+
+  function changeClient(delta){
+    if(!currentResults.length) return;
+    
+    // Calculate what the new index would be within the current page
+    let newIndex = currentSelectedIndex + delta;
+    
+    // If moving forward beyond current page
+    if(newIndex >= currentResults.length && delta > 0){
+      // Check if there's a next page
+      if((currentPage + 1) * pageSize < totalRecords){
+        // Load next page
+        loadRecent(currentPage + 1);
+        // After loadRecent completes, it will auto-select index 0
+      }
+      return;
+    }
+    
+    // If moving backward before current page
+    if(newIndex < 0 && delta < 0){
+      // Check if there's a previous page
+      if(currentPage > 0){
+        // Load previous page
+        loadRecent(currentPage - 1);
+        // After loadRecent completes, it will auto-select index 0
+      }
+      return;
+    }
+    
+    // Normal case: move within the current page
+    if(newIndex >= 0 && newIndex < currentResults.length){
+      currentSelectedIndex = newIndex;
+      const target = currentResults[currentSelectedIndex];
+      highlightSelectedResult();
+      if(target) loadClient(target.clientId);
+    }
+  }
+})();
+</script>

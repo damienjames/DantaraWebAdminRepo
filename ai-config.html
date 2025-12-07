@@ -1,0 +1,105 @@
+<link rel="stylesheet" href="/admin/ai-config.css" />
+
+<div class="ai-layout" data-ai-shell>
+  <div class="ai-chat-pane" aria-live="polite">
+    <div class="ai-chat-header">
+      <div class="ai-chat-header-main">
+        <div class="ai-lang-toggle">
+          <button type="button" class="ai-lang-btn is-active" data-lang-choice="en" aria-pressed="true">EN</button>
+          <button type="button" class="ai-lang-btn" data-lang-choice="th" aria-pressed="false">TH</button>
+        </div>
+        <h2>AI Content Manager</h2>
+        <div class="ai-target-switcher" role="tablist" aria-label="Dataset selector">
+          <button type="button" class="ai-target-tab is-active" data-target-tab="services" aria-pressed="true">Services</button>
+          <button type="button" class="ai-target-tab" data-target-tab="giftVouchers" aria-pressed="false">Packages</button>
+          <button type="button" class="ai-target-tab" data-target-tab="promotions" aria-pressed="false">Promotions</button>
+        </div>
+        <div class="ai-voucher-filter" id="ai-voucher-filter" role="group" aria-label="Filter by type" style="display: none;">
+          <span class="ai-filter-label" data-filter-label-text>Show:</span>
+          <button type="button" class="ai-filter-btn is-active" data-filter-type="all" data-filter-label-all aria-pressed="true">All</button>
+          <button type="button" class="ai-filter-btn" data-filter-type="packages" data-filter-label-packages aria-pressed="false">Packages</button>
+          <button type="button" class="ai-filter-btn" data-filter-type="giftCards" data-filter-label-giftcards aria-pressed="false">Gift Cards</button>
+        </div>
+        <div class="ai-chat-session-controls">
+          <button class="btn-icon" id="ai-chat-reset" type="button" aria-label="Reset conversation">Reset</button>
+          <button class="btn-icon" id="ai-chat-download" type="button" aria-label="Download draft JSON" disabled>Download</button>
+        </div>
+      </div>
+      <div class="ai-chat-header-subtitle">
+        <p data-header-subtitle>Tell the AI what to change, then review and publish. Clear, fast edits for services, promotions, and packages.</p>
+      </div>
+    </div>
+
+    <div class="ai-lang-bar" id="ai-lang-bar" aria-label="Language preference" style="display: none;">
+      <span>Instruction language:</span>
+      <div class="ai-lang-choices" role="group" aria-label="Choose instruction language">
+        <button type="button" class="ai-lang-btn is-active" data-lang-choice="en" aria-pressed="true">English</button>
+        <button type="button" class="ai-lang-btn" data-lang-choice="th" aria-pressed="false">Thai (responses in Thai, outputs remain English)</button>
+      </div>
+    </div>
+
+    <div class="ai-quick-chips" aria-label="Guided prompts" data-chip-host></div>
+
+    <div id="ai-chat-log" class="ai-chat-log" aria-live="polite" aria-label="AI conversation"></div>
+
+    <div class="ai-recent-actions" id="ai-recent-actions" style="display:none; margin-bottom: 12px;">
+      <span class="ai-recent-label">Last action:</span>
+      <span id="ai-recent-action-text" class="ai-recent-text"></span>
+      <button type="button" id="ai-undo-btn" class="ai-undo-btn" aria-label="Undo last action">↶ Undo</button>
+    </div>
+
+    <form id="ai-chat-form" class="ai-chat-input-row" autocomplete="off">
+      <label class="visually-hidden" for="ai-chat-input">Send a message to the AI agent</label>
+      <div class="ai-textarea-wrapper">
+        <textarea id="ai-chat-input" placeholder="Ask the AI to add/tweak a service or promo, or paste a full description to turn into JSON..." data-placeholder-text required></textarea>
+        <div class="ai-char-count" id="ai-char-count"><span id="ai-char-current">0</span> / 1000</div>
+      </div>
+      <div class="ai-chat-controls">
+        <button type="button" id="ai-stt" class="ai-stt" aria-label="Start voice input">🎤</button>
+        <button type="submit" id="ai-chat-send" data-send-button>Send</button>
+      </div>
+    </form>
+    <div id="ai-chat-status" class="ai-chat-status" role="status" aria-live="polite"></div>
+  </div>
+
+  <div class="ai-config-pane" aria-live="polite">
+    <div class="ai-config-header">
+      <div class="ai-config-target" data-item-label>No record selected</div>
+      <div class="ai-config-header-actions">
+        <button type="button" id="ai-config-publish" disabled>Publish Draft</button>
+      </div>
+    </div>
+
+    <details class="ai-guide" open data-guide-content>
+      <summary data-guide-summary>How to use (click to collapse)</summary>
+      <div class="guide-card">
+        <h4 data-guide-title>Quick Start</h4>
+        <ul data-guide-list>
+          <li><strong data-guide-add-label>Add:</strong> <span data-guide-add>"Add a 60-min Swedish massage for $120"</span></li>
+          <li><strong data-guide-change-label>Change:</strong> <span data-guide-change>"Change the price to $110"</span></li>
+          <li><strong data-guide-delete-label>Delete:</strong> <span data-guide-delete>"Remove this item"</span></li>
+          <li><span data-guide-select>Select Services/Packages/Promotions at the top</span></li>
+          <li><span data-guide-review>Review the preview on the right, then Publish</span></li>
+        </ul>
+      </div>
+    </details>
+
+    <div class="ai-config-body">
+      <div id="ai-config-preview" class="ai-config-preview" aria-label="Preview frame">
+        <div class="config-frame-grid">
+          <div id="ai-config-list" class="config-list" role="list"></div>
+          <div id="ai-config-detail" class="config-detail" role="region" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="publish-cta" aria-live="polite">
+        <div class="publish-cta-text" data-publish-cta-text>
+          Review the draft above. When it looks right, submit and commit the changes.
+          <span class="lang-badge" data-lang-badge>Instructions: English</span>
+        </div>
+        <button type="button" id="ai-config-publish-secondary" data-publish-button disabled>Submit &amp; Publish</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="/admin/ai-config.js"></script>

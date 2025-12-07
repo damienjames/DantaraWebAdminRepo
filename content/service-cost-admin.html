@@ -1,0 +1,176 @@
+<style>
+  .pricing-admin-wrapper { max-width:1400px; margin:40px auto; padding:0 20px; }
+  .pricing-header h1 { font-size:1.9rem; font-weight:700; margin:0 0 6px; }
+  .pricing-header p { color:#475569; margin:0 0 24px; }
+  .pricing-filters { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:16px; }
+  .pricing-filters .form-control { min-width:220px; }
+  .pricing-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:12px; box-shadow:0 2px 4px rgba(0,0,0,.05); overflow:hidden; }
+  table.pricing-table { width:100%; border-collapse:collapse; }
+  table.pricing-table thead { background:#f1f5f9; }
+  table.pricing-table th, table.pricing-table td { padding:10px 12px; text-align:left; font-size:14px; border-bottom:1px solid #edf2f7; }
+  table.pricing-table th { font-weight:600; color:#0f172a; font-size:12px; text-transform:uppercase; letter-spacing:.5px; }
+  table.pricing-table tr:last-child td { border-bottom:none; }
+  .price-input { width:100px; }
+  .row-dirty { background:#fffbea; transition: background .2s; }
+  .save-bar { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px 16px; background:#fff; border:1px solid #e2e8f0; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,.06); margin-top:20px; }
+  .save-bar .status { font-size:14px; color:#64748b; }
+  .btn { cursor:pointer; }
+  .success-toast, .error-toast { position:fixed; bottom:20px; right:20px; background:#0f172a; color:#fff; padding:12px 16px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,.15); font-size:14px; display:none; }
+  .success-toast { background:#0f6848; }
+  .error-toast { background:#992b2b; }
+  @media (max-width: 900px){ .pricing-table thead { display:none; } table.pricing-table tr { display:block; margin:0 0 12px; border:1px solid #e2e8f0; border-radius:10px; } table.pricing-table td { display:flex; justify-content:space-between; border-bottom:1px solid #f1f5f9; } table.pricing-table tr:last-child td { border-bottom:1px solid #f1f5f9; } table.pricing-table td::before { content: attr(data-label); font-weight:600; color:#334155; } .price-input { width:90px; } }
+</style>
+
+<div class="pricing-admin-wrapper">
+  <div class="pricing-header">
+    <h1>Service Cost Admin</h1>
+    <p>Update service pricing and durations. Changes apply to new bookings once saved. Prices do not retroactively change existing bookings.</p>
+  </div>
+  <div class="pricing-filters">
+    <input id="pricingSearch" class="form-control" placeholder="Search service name" />
+    <select id="pricingCategory" class="form-select" style="max-width:220px;">
+      <option value="">All Categories</option>
+    </select>
+  </div>
+  <div class="pricing-table-wrap">
+    <table class="pricing-table" id="pricingTable">
+      <thead>
+        <tr>
+          <th style="width:32px;">#</th>
+          <th>Service</th>
+          <th>Category</th>
+          <th>Duration (min)</th>
+          <th>Current Price</th>
+          <th>New Price</th>
+        </tr>
+      </thead>
+      <tbody id="pricingTbody">
+        <tr><td colspan="6" style="text-align:center; padding:30px;">Loading pricing...</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="save-bar">
+    <div class="status" id="pricingStatus">No changes.</div>
+    <div style="display:flex; gap:8px;">
+      <button class="btn btn-secondary" id="resetChangesBtn" disabled>Reset</button>
+      <button class="btn btn-primary" id="savePricingBtn" disabled>Save Changes</button>
+    </div>
+  </div>
+  <div style="margin-top:16px; font-size:12px; color:#64748b;">Note: /api/catalog is the single source of truth for pricing. This admin view updates only price fields; it does not add or remove services.</div>
+</div>
+<div id="pricingSuccess" class="success-toast" role="alert">Pricing updated successfully.</div>
+<div id="pricingError" class="error-toast" role="alert">Could not save pricing. Please try again.</div>
+
+<script>
+(function(){
+  // State
+  let catalogItems = [];
+  let filteredItems = [];
+  const dirtyMap = new Map(); // id -> { oldPrice, newPrice, durationMinutes, serviceId }
+  const searchEl = document.getElementById('pricingSearch');
+  const catEl = document.getElementById('pricingCategory');
+  const tbody = document.getElementById('pricingTbody');
+  const statusEl = document.getElementById('pricingStatus');
+  const saveBtn = document.getElementById('savePricingBtn');
+  const resetBtn = document.getElementById('resetChangesBtn');
+  const successToast = document.getElementById('pricingSuccess');
+  const errorToast = document.getElementById('pricingError');
+
+  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function baseId(item){ // serviceId without trailing -duration if pattern matches
+    const id = item.id || item.slug || ''; const dm = item.duration_minutes || item.durationMinutes; if(!dm) return id; const suffix = '-' + dm; if(id.endsWith(suffix)) return id.slice(0, -suffix.length); return id; }
+
+  async function loadCatalog(){
+    try {
+      const res = await fetch('/api/catalog');
+      const data = await res.json();
+      catalogItems = Array.isArray(data.value) ? data.value.filter(i => i && i.id && i.base_price != null) : [];
+      buildCategoryOptions();
+      applyFilters();
+    } catch(e){ tbody.innerHTML = '<tr><td colspan="6" class="text-danger">Failed to load catalog.</td></tr>'; }
+  }
+
+  function buildCategoryOptions(){
+    const cats = Array.from(new Set(catalogItems.map(i=> i.category).filter(Boolean))).sort();
+    cats.forEach(c => { const opt = document.createElement('option'); opt.value = c; opt.textContent = c; catEl.appendChild(opt); });
+  }
+
+  function applyFilters(){
+    const q = searchEl.value.trim().toLowerCase();
+    const cat = catEl.value;
+    filteredItems = catalogItems.filter(item => {
+      const matchesText = !q || (item.service||'').toLowerCase().includes(q) || (item.modality||'').toLowerCase().includes(q);
+      const matchesCat = !cat || item.category === cat;
+      return matchesText && matchesCat;
+    }).sort((a,b)=> (a.service||'').localeCompare(b.service||'') || (a.duration_minutes||0) - (b.duration_minutes||0));
+    renderTable();
+  }
+
+  function renderTable(){
+    if(filteredItems.length === 0){ tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px;">No matches.</td></tr>'; return; }
+    tbody.innerHTML = '';
+    filteredItems.forEach((item, idx) => {
+      const tr = document.createElement('tr');
+      tr.dataset.id = item.id;
+      const isDirty = dirtyMap.has(item.id);
+      if(isDirty) tr.classList.add('row-dirty');
+      const oldPrice = item.base_price;
+      const change = dirtyMap.get(item.id);
+      const newPriceVal = change ? change.newPrice : '';
+      tr.innerHTML = `
+        <td data-label="#">${idx+1}</td>
+        <td data-label="Service">${esc(item.service || item.displayName || item.modality || item.id)}</td>
+        <td data-label="Category">${esc(item.category || '')}</td>
+        <td data-label="Duration">${esc(item.duration_minutes)}</td>
+        <td data-label="Current">$${esc(oldPrice)}</td>
+        <td data-label="New"><input type="number" min="0" step="1" class="form-control price-input" value="${esc(newPriceVal)}" placeholder="$${esc(oldPrice)}" /></td>`;
+      const input = tr.querySelector('input');
+      input.addEventListener('input', () => onPriceEdit(item, input));
+      tbody.appendChild(tr);
+    });
+    updateStatus();
+  }
+
+  function onPriceEdit(item, input){
+    const raw = input.value.trim();
+    if(raw === ''){ dirtyMap.delete(item.id); input.closest('tr').classList.remove('row-dirty'); updateStatus(); return; }
+    const num = Number(raw);
+    if(isNaN(num) || num < 0){ return; }
+    if(num === item.base_price){ dirtyMap.delete(item.id); input.closest('tr').classList.remove('row-dirty'); } else {
+      dirtyMap.set(item.id, { oldPrice: item.base_price, newPrice: num, durationMinutes: item.duration_minutes, serviceId: baseId(item) });
+      input.closest('tr').classList.add('row-dirty');
+    }
+    updateStatus();
+  }
+
+  function updateStatus(){
+    const count = dirtyMap.size;
+    if(count === 0){ statusEl.textContent = 'No changes.'; saveBtn.disabled = true; resetBtn.disabled = true; window.__pricingDirty = false; }
+    else { statusEl.textContent = count + ' change' + (count>1?'s':'') + ' pending.'; saveBtn.disabled = false; resetBtn.disabled = false; window.__pricingDirty = true; }
+  }
+
+  function resetChanges(){ dirtyMap.clear(); renderTable(); }
+
+  function showToast(el){ el.style.display='block'; setTimeout(()=>{ el.style.display='none'; }, 3500); }
+
+  async function saveChanges(){
+    if(dirtyMap.size === 0) return;
+    const changes = Array.from(dirtyMap.values()).map(c => ({ serviceId: c.serviceId, durationMinutes: c.durationMinutes, oldPrice: c.oldPrice, newPrice: c.newPrice }));
+    try {
+      saveBtn.disabled = true; statusEl.textContent = 'Saving...';
+      // No admin key header; rely on Entra ID (Static Web Apps auth) principal forwarded to function
+      const res = await fetch('/api/catalog', { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ action:'updatePricingOnly', changes }) });
+      const json = await res.json().catch(()=>({}));
+      if(!res.ok || !json.ok){ throw new Error(json.error || 'Save failed'); }
+      changes.forEach(ch => { const target = catalogItems.find(i => i.id === (ch.serviceId + '-' + ch.durationMinutes)); if(target) target.base_price = ch.newPrice; });
+      dirtyMap.clear(); renderTable(); showToast(successToast); statusEl.textContent = 'Updated.'; window.__pricingDirty = false;
+    } catch(e){ console.error(e); showToast(errorToast); statusEl.textContent = 'Error saving.'; saveBtn.disabled = false; }
+  }
+
+  searchEl.addEventListener('input', applyFilters);
+  catEl.addEventListener('change', applyFilters);
+  saveBtn.addEventListener('click', saveChanges);
+  resetBtn.addEventListener('click', resetChanges);
+  loadCatalog();
+})();
+</script>

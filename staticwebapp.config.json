@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/staticwebapp.config.json",
+  "routes": [
+    {
+      "route": "/*",
+      "allowedRoles": ["authenticated"]
+    }
+  ],
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/images/*", "/css/*", "/js/*", "/assets/*", "/api/*"]
+  },
+  "responseOverrides": {
+    "401": {
+      "statusCode": 302,
+      "redirect": "/.auth/login/aad?tenant=a5bcf9da-3e8b-466d-924d-1f9e81ad1352&post_login_redirect_uri=.referrer"
+    },
+    "403": {
+      "rewrite": "/forbidden.html"
+    }
+  }
+}

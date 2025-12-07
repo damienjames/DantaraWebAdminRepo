@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Dashboard | Dantara Thai Wellness & Spa</title>
+  <meta name="description" content="Administrative dashboard for Dantara Thai Wellness & Spa" />
+  
+  <!-- Bootstrap / Icons / Fonts -->
+  <link rel="stylesheet" href="/assets/bootstrap/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/assets/fonts/fontawesome/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css" />
+  <link rel="stylesheet" href="/assets/fonts/google-fonts/combined.css" />
+  
+  <!-- Site CSS -->
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/chat-dock.css" />
+  <link rel="stylesheet" href="/css/mobile-dock.css" />
+  
+  <link rel="icon" type="image/x-icon" href="/images/favicon.ico" />
+  
+  <style>
+    /* Mobile dock spacing */
+    :root {
+      --dock-h: 64px;
+    }
+
+    @media (max-width: 767.98px) {
+      body {
+        padding-bottom: var(--dock-h);
+      }
+      #mobile-dock {
+        z-index: 1020;
+      }
+    }
+
+    /* Compact hero */
+    .hero--compact {
+      position: relative;
+      color: #fff;
+      text-align: center;
+      min-height: auto;
+      padding: 40px 0 30px;
+      background: linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.35)), url('/images/spa-interior.webp') center/cover no-repeat;
+    }
+    .hero--compact .hero-overlay { pointer-events:none; }
+
+    @media (max-width: 767.98px) {
+      .hero--compact { padding: 16px 0 12px; }
+      .hero--compact .hero-buttons { display: none !important; }
+    }
+
+    /* Refreshed segmented tabs navigation */
+    .segmented-tabs { position:relative; display:flex; gap:2px; background:#fff; border:1px solid rgba(0,0,0,.08); border-radius:999px; box-shadow:0 6px 14px rgba(0,0,0,.05); padding:4px; }
+    .segmented-tab { appearance:none; border:0; background:transparent; padding:14px 40px; border-radius:999px; font-weight:600; color:#0f3a42; font-size:.95rem; cursor:pointer; position:relative; transition:color .25s; }
+    .segmented-tab:focus-visible { outline:2px solid #0f6a7a; outline-offset:2px; }
+    .segmented-tab[aria-selected="true"] { color:#fff; }
+    .segmented-tabs .active-indicator { position:absolute; top:4px; left:4px; height:calc(100% - 8px); width:160px; background:linear-gradient(90deg,#58c2d3,#176e86); border-radius:999px; box-shadow:0 2px 6px rgba(0,0,0,.25); transition:transform .35s cubic-bezier(.4,0,.2,1), width .3s; z-index:0; pointer-events:none; }
+    .segmented-tabs .segmented-tab { z-index:1; }
+    @media (max-width: 992px){ .segmented-tab { padding:12px 28px; font-size:.85rem; } }
+    /* Mobile: horizontal scroll, keep pill styling */
+    @media (max-width: 620px){
+      .segmented-tabs { overflow-x:auto; scrollbar-width:none; }
+      .segmented-tabs::-webkit-scrollbar { display:none; }
+      .segmented-tab { flex:0 0 auto; }
+      .segmented-tabs .active-indicator { display:none; }
+      .segmented-tab[aria-selected="true"] { background:linear-gradient(90deg,#58c2d3,#176e86); color:#fff; }
+    }
+
+    @media (max-width: 575.98px) {
+      .segmented-tab {
+        font-size: .8rem;
+        padding: 8px 10px;
+      }
+    }
+
+    /* Content sections */
+    .admin-section {
+      display: none;
+    }
+    
+    .admin-section.active {
+      display: block;
+    }
+
+    /* Ensure iframe/content fills properly */
+    #intake-container, #promos-container {
+      min-height: 600px;
+    }
+
+    /* Auth banner */
+    .auth-banner {
+      background: #0f3a42;
+      color: #ffffff;
+      font-size: 0.9rem;
+    }
+    .auth-banner .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+    }
+    .auth-banner a {
+      color: #c3f0ff;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <!-- Site navigation -->
+  <div id="nav-container"></div>
+
+  <!-- Auth banner (populated via /.auth/me) -->
+  <div id="auth-banner" class="auth-banner" style="display:none;">
+    <div class="container">
+      <div>
+        Signed in as <strong id="auth-user"></strong>
+      </div>
+      <div>
+        <a id="auth-logout" href="/.auth/logout?post_logout_redirect_uri=/">Sign out</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Compact HERO -->
+  <header class="hero-section hero--compact">
+    <div class="hero-overlay"></div>
+    <div class="container text-center py-3">
+      <h1 class="display-5">Admin Dashboard</h1>
+      <p class="lead mb-0">Manage client intakes and promotional offers</p>
+    </div>
+  </header>
+
+  <!-- Segmented tabs navigation (sticky) -->
+  <div class="sticky-top bg-white border-bottom py-2">
+    <div class="container">
+      <div id="admin-tabs" class="segmented-tabs" role="tablist" aria-label="Admin section navigation">
+        <button class="segmented-tab" role="tab" id="tab-intake" data-section="intake" aria-selected="true" aria-controls="intake">Client Records</button>
+        <button class="segmented-tab" role="tab" id="tab-promos" data-section="promos" aria-selected="false" aria-controls="promos">Promotions Manager</button>
+        <button class="segmented-tab" role="tab" id="tab-services" data-section="services" aria-selected="false" aria-controls="services">Services Admin</button>
+        <button class="segmented-tab" role="tab" id="tab-ai-config" data-section="ai-config" aria-selected="false" aria-controls="ai-config">AI Content Manager</button>
+        <span class="active-indicator" aria-hidden="true"></span>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <!-- CLIENT RECORDS SECTION -->
+    <section id="intake" class="admin-section active py-4">
+      <div id="intake-container"></div>
+    </section>
+
+    <!-- PROMOTIONS MANAGER SECTION -->
+    <section id="promos" class="admin-section py-4">
+      <div id="promos-container"></div>
+    </section>
+
+    <!-- SERVICES ADMIN SECTION -->
+    <section id="services" class="admin-section py-4">
+      <div id="services-container"></div>
+    </section>
+
+    <!-- AI CONFIG ASSISTANT SECTION -->
+    <section id="ai-config" class="admin-section py-4">
+      <div id="ai-config-container"></div>
+    </section>
+  </main>
+
+  <div id="footer-container"></div>
+
+  <!-- Scripts -->
+  <script src="/assets/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/navigation.js"></script>
+  <script src="/js/footer.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Auth banner: show current user and sign-out
+      (async function initAuthBanner(){
+        try {
+          const res = await fetch('/.auth/me', { credentials: 'include' });
+          if (!res.ok) return;
+          const data = await res.json();
+          const principal = (data && data.clientPrincipal) ? data.clientPrincipal : null;
+          if (!principal) return;
+          const allowedDomain = '@dantaraspa.com';
+          const userDetailsRaw = principal.userDetails || '';
+          const userLower = userDetailsRaw.toLowerCase();
+          const provider = principal.identityProvider || '';
+          if (provider !== 'aad' || !userLower.endsWith(allowedDomain)) {
+            window.location.href = '/.auth/logout?post_logout_redirect_uri=' + encodeURIComponent('/admin/forbidden.html');
+            return;
+          }
+          const user = principal.userDetails || (principal.claims || []).find(c=>c.typ && c.typ.toLowerCase().includes('email'))?.val || 'Authenticated user';
+          const banner = document.getElementById('auth-banner');
+          const userEl = document.getElementById('auth-user');
+          const logoutEl = document.getElementById('auth-logout');
+          if (userEl) userEl.textContent = user;
+          if (logoutEl) {
+            const returnTo = location.pathname + location.search + location.hash;
+            logoutEl.href = '/.auth/logout?post_logout_redirect_uri=' + encodeURIComponent(returnTo || '/');
+          }
+          if (banner) banner.style.display = 'block';
+        } catch { /* ignore */ }
+      })();
+
+      // Tab navigation logic (similar to services.html)
+      const tabs = document.querySelectorAll('.segmented-tab');
+      const sections = document.querySelectorAll('.admin-section');
+      const indicator = document.querySelector('.active-indicator');
+      function updateIndicator(tab){
+        if(!tab) return;
+        const w = tab.getBoundingClientRect().width + 4; // slight buffer so last character isn't clipped
+        indicator.style.width = w + 'px';
+        indicator.style.transform = `translateX(${tab.offsetLeft - 2}px)`;
+      }
+
+    // Load content function
+    async function loadContent(section) {
+      const container = document.getElementById(`${section}-container`);
+      
+      if (container.hasAttribute('data-loaded')) {
+        return; // Already loaded
+      }
+
+      try {
+        let url = '/admin/content/intake-admin.html';
+        if(section === 'promos') url = '/admin/content/promo-admin.html';
+        else if(section === 'services') url = '/admin/content/services-admin.html';
+        else if(section === 'ai-config') url = '/admin/ai-config.html';
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to load ${section}`);
+        }
+        
+        const html = await response.text();
+        container.innerHTML = html;
+        container.setAttribute('data-loaded', 'true');
+        
+        // Execute any scripts in the loaded content
+        const scripts = container.querySelectorAll('script');
+        scripts.forEach(oldScript => {
+          const newScript = document.createElement('script');
+          Array.from(oldScript.attributes).forEach(attr => 
+            newScript.setAttribute(attr.name, attr.value)
+          );
+          newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+          oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+      } catch (error) {
+        console.error('Error loading content:', error);
+        container.innerHTML = `<div class="container"><div class="alert alert-danger">Failed to load content. Please refresh the page.</div></div>`;
+      }
+    }
+
+    // Handle tab clicks
+    // Dirty guard hook - service cost admin sets window.__pricingDirty = true if unsaved edits
+    function canNavigateAway(){
+      try { return !window.__servicesDirty; } catch { return true; }
+    }
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', async (e) => {
+        const targetSection = tab.dataset.section;
+        if(targetSection !== 'services' && !canNavigateAway()){
+          const ok = window.confirm('You have unsaved pricing changes. Leave without saving?');
+          if(!ok){ e.preventDefault(); return; }
+          // allow navigation; clear dirty flag so admin can move on
+          window.__servicesDirty = false;
+        }
+        // Update tabs
+        tabs.forEach(t => t.setAttribute('aria-selected', 'false'));
+        tab.setAttribute('aria-selected', 'true');
+        // Update sections
+        sections.forEach(s => s.classList.remove('active'));
+        document.getElementById(targetSection).classList.add('active');
+        // Move indicator dynamically
+        updateIndicator(tab);
+        // Load content if not already loaded
+        await loadContent(targetSection);
+        // Update URL hash
+        window.location.hash = targetSection;
+      });
+    });
+
+    // Handle initial load and hash navigation
+    async function handleHashChange() {
+      const hash = window.location.hash.slice(1);
+      const validSections = ['intake', 'promos', 'services', 'ai-config'];
+      const targetSection = validSections.includes(hash) ? hash : 'intake';
+      
+      // Find and click the corresponding tab
+      const targetTab = document.querySelector(`[data-section="${targetSection}"]`);
+      if (targetTab && targetTab.getAttribute('aria-selected') !== 'true') {
+        targetTab.click();
+      }
+    }
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+
+    // Initial load
+    (async () => {
+      // Preload default section (intake)
+      await loadContent('intake');
+      // Handle existing hash (may auto-load pricing/promos)
+      handleHashChange();
+      // Initial indicator position
+      updateIndicator(document.querySelector('.segmented-tab[aria-selected="true"]'));
+      // Before unload guard for pricing dirty state
+      window.addEventListener('beforeunload', (ev) => {
+        if(window.__servicesDirty){ ev.preventDefault(); ev.returnValue = 'Unsaved changes will be lost.'; }
+      });
+    })();
+    }); // End DOMContentLoaded
+  </script>
+</body>
+</html>

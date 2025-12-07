@@ -1,0 +1,1696 @@
+<style>
+  :root {
+    --primary: #667eea;
+    --primary-dark: #5568d3;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-900: #111827;
+    --border-radius: 12px;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  }
+  
+  /* Access gate styles */
+  #accessGate {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  #accessGate .access-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    padding: 48px;
+    max-width: 440px;
+    width: 90%;
+    text-align: center;
+  }
+  #accessGate h1 {
+    font-size: 28px;
+    margin: 0 0 12px;
+    color: var(--gray-900);
+    font-weight: 700;
+  }
+  #accessGate p {
+    color: var(--gray-600);
+    margin: 0 0 32px;
+    font-size: 15px;
+  }
+  #accessGate input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid var(--gray-200);
+    border-radius: 10px;
+    font-size: 16px;
+    margin-bottom: 16px;
+    transition: all 0.2s;
+    box-sizing: border-box;
+    min-height: 50px;
+  }
+  #accessGate input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+  #accessGate .btn-group {
+    display: flex;
+    gap: 12px;
+  }
+  #accessGate button {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 50px;
+  }
+  #accessGate .btn-primary {
+    background: var(--primary);
+    color: white;
+  }
+  #accessGate .btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+  }
+  #accessGate .btn-secondary {
+    background: var(--gray-100);
+    color: var(--gray-700);
+  }
+  #accessGate .btn-secondary:hover {
+    background: var(--gray-200);
+  }
+  #accessGate .error {
+    color: var(--danger);
+    margin-top: 12px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  /* Admin interface visible (no access gate) */
+  #adminInterface { display: block; }
+  
+  /* Modern admin layout */
+  .admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 16px 80px;
+  }
+  
+  @media (min-width: 768px) {
+    .admin-container {
+      padding: 0 24px 60px;
+    }
+  }
+  
+  .admin-header {
+    margin-bottom: 24px;
+  }
+  
+  @media (min-width: 768px) {
+    .admin-header {
+      margin-bottom: 32px;
+    }
+  }
+  
+  .admin-header h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0 0 8px;
+  }
+  
+  @media (min-width: 768px) {
+    .admin-header h2 {
+      font-size: 24px;
+    }
+  }
+  
+  .admin-header p {
+    color: var(--gray-600);
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  
+  @media (min-width: 768px) {
+    .admin-header p {
+      font-size: 15px;
+    }
+  }
+  
+  .admin-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  @media (min-width: 1024px) {
+    .admin-grid {
+      grid-template-columns: 380px 1fr;
+      gap: 24px;
+    }
+  }
+  
+  /* Promotions list panel */
+  .panel {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--gray-200);
+  }
+  
+  .panel-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  @media (min-width: 768px) {
+    .panel-header {
+      padding: 20px 24px;
+      flex-wrap: nowrap;
+    }
+  }
+  
+  .panel-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gray-900);
+  }
+  
+  @media (min-width: 768px) {
+    .panel-header h3 {
+      font-size: 18px;
+    }
+  }
+  
+  .panel-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  
+  .panel-body {
+    padding: 12px;
+  }
+  
+  @media (min-width: 768px) {
+    .panel-body {
+      padding: 16px;
+    }
+  }
+  
+  .promo-list {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
+  @media (min-width: 768px) {
+    .promo-list {
+      max-height: 600px;
+    }
+  }
+  
+  .promo-item {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--gray-100);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: background 0.15s, transform 0.2s;
+    cursor: grab;
+    position: relative;
+  }
+  
+  .promo-item.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+  }
+  
+  .promo-item.drag-over {
+    border-top: 3px solid var(--primary);
+  }
+  
+  @media (min-width: 640px) {
+    .promo-item {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+    }
+  }
+  
+  .promo-item:last-child {
+    border-bottom: none;
+  }
+  
+  .promo-item:hover {
+    background: var(--gray-50);
+  }
+  
+  .drag-handle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    color: var(--gray-400);
+    cursor: grab;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+  
+  .drag-handle:hover {
+    color: var(--primary);
+  }
+  
+  .promo-item-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: start;
+    gap: 8px;
+  }
+  
+  .promo-item-info {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .promo-item-title {
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 14px;
+  }
+  
+  @media (min-width: 768px) {
+    .promo-item-title {
+      font-size: 15px;
+    }
+  }
+  
+  .promo-item-meta {
+    font-size: 12px;
+    color: var(--gray-600);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  
+  @media (min-width: 768px) {
+    .promo-item-meta {
+      font-size: 13px;
+      gap: 12px;
+    }
+  }
+  
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .status-badge.active {
+    background: #d1fae5;
+    color: #065f46;
+  }
+  
+  .status-badge.inactive {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+  
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    min-height: 44px;
+  }
+  
+  @media (min-width: 768px) {
+    .btn {
+      padding: 8px 16px;
+      min-height: auto;
+    }
+  }
+  
+  .btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+  
+  .btn:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  
+  .btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  
+  .btn-sm {
+    padding: 8px 14px;
+    font-size: 13px;
+    min-height: 40px;
+  }
+  
+  @media (min-width: 768px) {
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 13px;
+      min-height: auto;
+    }
+  }
+  
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    background: var(--primary-dark);
+    box-shadow: var(--shadow);
+  }
+  
+  .btn-success {
+    background: var(--success);
+    color: white;
+  }
+  
+  .btn-success:hover:not(:disabled) {
+    background: #059669;
+    box-shadow: var(--shadow);
+  }
+  
+  .btn-success:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  
+  .btn-danger {
+    background: var(--danger);
+    color: white;
+  }
+  
+  .btn-danger:hover {
+    background: #dc2626;
+    box-shadow: var(--shadow);
+  }
+  
+  .btn-secondary {
+    background: white;
+    color: var(--gray-700);
+    border: 1px solid var(--gray-300);
+  }
+  
+  .btn-secondary:hover {
+    background: var(--gray-50);
+    border-color: var(--gray-400);
+  }
+  
+  /* Editor panel */
+  .tab-content {
+    padding: 24px;
+  }
+  
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  @media (min-width: 768px) {
+    .form-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-group.full-width {
+    grid-column: 1 / -1;
+  }
+  
+  .form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .form-input, .form-select, .form-textarea {
+    padding: 12px 14px;
+    border: 1px solid var(--gray-300);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.15s;
+    font-family: inherit;
+    min-height: 44px;
+  }
+  
+  @media (min-width: 768px) {
+    .form-input, .form-select, .form-textarea {
+      padding: 10px 14px;
+      min-height: auto;
+    }
+  }
+  
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+  
+  .form-textarea {
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+  }
+  
+  .form-checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 0;
+  }
+  
+  .form-checkbox {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+  
+  .form-checkbox-label {
+    font-size: 14px;
+    color: var(--gray-700);
+    cursor: pointer;
+    margin: 0;
+  }
+  
+  /* Day buttons */
+  .day-buttons {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  
+  @media (min-width: 768px) {
+    .day-buttons {
+      gap: 8px;
+    }
+  }
+  
+  .day-btn {
+    padding: 10px 14px;
+    border: 2px solid var(--gray-300);
+    background: white;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--gray-700);
+    min-height: 42px;
+    min-width: 42px;
+  }
+  
+  @media (min-width: 768px) {
+    .day-btn {
+      padding: 8px 16px;
+      min-height: auto;
+      min-width: auto;
+    }
+  }
+  
+  .day-btn:hover {
+    border-color: var(--primary);
+    background: var(--gray-50);
+  }
+  
+  .day-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+  }
+  
+  /* Preview panel */
+  .preview-card {
+    border: 1px solid var(--gray-200);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    background: white;
+  }
+  
+  .preview-card h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 12px;
+    color: var(--gray-900);
+  }
+  
+  .preview-card .promo-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: var(--gray-100);
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gray-700);
+  }
+  
+  /* Status bar */
+  .status-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid var(--gray-200);
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    z-index: 50;
+    gap: 12px;
+  }
+  
+  @media (min-width: 768px) {
+    .status-bar {
+      padding: 16px 24px;
+    }
+  }
+  
+  .status-message {
+    color: var(--gray-600);
+    font-size: 13px;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  @media (min-width: 768px) {
+    .status-message {
+      font-size: 14px;
+    }
+  }
+  
+  .status-message.error {
+    color: var(--danger);
+    font-weight: 500;
+  }
+  
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 40px 16px;
+    color: var(--gray-500);
+  }
+  
+  @media (min-width: 768px) {
+    .empty-state {
+      padding: 60px 20px;
+    }
+  }
+  
+  .empty-state-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+    opacity: 0.3;
+  }
+  
+  @media (min-width: 768px) {
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+  }
+  
+  /* Chips input styling */
+  .chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px;
+    border: 2px solid var(--gray-200);
+    border-radius: 10px;
+    min-height: 50px;
+    background: white;
+    cursor: text;
+  }
+  .chips-container:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+  .chip-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--primary);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .chip-tag button {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 14px;
+    line-height: 1;
+  }
+  .chip-tag button:hover {
+    background: rgba(255,255,255,0.2);
+  }
+  .chips-input {
+    flex: 1;
+    min-width: 120px;
+    border: none;
+    outline: none;
+    padding: 4px;
+    font-size: 14px;
+  }
+  
+  /* Help icon styling */
+  .help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: help;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .help-icon:hover {
+    background: var(--primary-dark);
+    transform: scale(1.1);
+  }
+  
+  /* Help modal */
+  .help-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .help-modal.active {
+    display: flex;
+  }
+  .help-modal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .help-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .help-modal-header h3 {
+    margin: 0;
+    font-size: 20px;
+    color: var(--gray-900);
+  }
+  .help-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: var(--gray-600);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  .help-modal-close:hover {
+    background: var(--gray-100);
+    color: var(--gray-900);
+  }
+  .help-modal-body {
+    color: var(--gray-700);
+    line-height: 1.6;
+  }
+  .help-modal-body strong {
+    color: var(--gray-900);
+    display: block;
+    margin-top: 12px;
+    margin-bottom: 4px;
+  }
+  .help-modal-body ul {
+    margin: 8px 0;
+    padding-left: 20px;
+  }
+  .help-modal-body code {
+    background: var(--gray-100);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: monospace;
+  }
+</style>
+
+<!-- Admin Interface -->
+<div id="adminInterface">
+  <main class="admin-container">
+    <div class="admin-header">
+      <h2>Manage Special Offers</h2>
+      <p>Create, edit, and publish promotions that appear on your website. Changes go live immediately when you click "Publish Changes".</p>
+    </div>
+
+    <div class="admin-grid">
+      <!-- Left: Promotions List -->
+      <div class="panel">
+        <div class="panel-header">
+          <h3>📋 All Promotions</h3>
+          <div class="panel-actions">
+            <button id="refreshBtn" class="btn btn-sm btn-secondary" title="Reload from server">
+              <span>🔄</span>
+            </button>
+            <button id="addPromoBtn" class="btn btn-sm btn-primary">
+              <span>+ New</span>
+            </button>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div id="promosList" class="promo-list">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Editor & Preview -->
+      <div>
+        <!-- Editor Panel -->
+        <div class="panel" style="margin-bottom: 24px;">
+          <div class="panel-header">
+            <h3>✏️ Editor</h3>
+            <div class="panel-actions">
+              <button id="deleteSelectedBtn" class="btn btn-sm btn-danger">Delete</button>
+            </div>
+          </div>
+          <div class="tab-content">
+            <form class="form-grid" onsubmit="return false;">
+              <div class="form-group">
+                <label class="form-label" for="e_title">
+                  Title
+                  <span class="help-icon" data-help="title">?</span>
+                </label>
+                <input type="text" id="e_title" class="form-input" placeholder="e.g., Weekend Special" />
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="e_enabled">
+                  Status
+                  <span class="help-icon" data-help="status">?</span>
+                </label>
+                <select id="e_enabled" class="form-select">
+                  <option value="true">✅ Enabled</option>
+                  <option value="false">❌ Disabled</option>
+                </select>
+              </div>
+              
+              <div class="form-group full-width">
+                <label class="form-label" for="e_teaser">
+                  Teaser Text (Optional)
+                  <span class="help-icon" data-help="teaser">?</span>
+                </label>
+                <input type="text" id="e_teaser" class="form-input" placeholder="Short preview text shown in collapsed view" />
+              </div>
+              
+              <div class="form-group full-width">
+                <label class="form-label" for="e_desc">
+                  Description
+                  <span class="help-icon" data-help="description">?</span>
+                </label>
+                <textarea id="e_desc" class="form-textarea" placeholder="Describe the promotion in detail..."></textarea>
+              </div>
+              
+              <div class="form-group full-width">
+                <label class="form-label">
+                  Highlight Chips
+                  <span class="help-icon" data-help="chips">?</span>
+                </label>
+                <div id="e_chips_container" class="chips-container">
+                  <input type="text" id="e_chips_input" class="chips-input" placeholder="Type a chip and press Enter (e.g., '90 min', 'Gift Cards')" />
+                </div>
+                <input type="hidden" id="e_chips" />
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="e_start">
+                  Start Date & Time
+                  <span class="help-icon" data-help="startDate">?</span>
+                </label>
+                <input type="datetime-local" id="e_start" class="form-input" />
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="e_end">
+                  End Date & Time
+                  <span class="help-icon" data-help="endDate">?</span>
+                </label>
+                <input type="datetime-local" id="e_end" class="form-input" />
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="e_cat">
+                  Category
+                  <span class="help-icon" data-help="category">?</span>
+                </label>
+                <input type="text" id="e_cat" class="form-input" placeholder="e.g., seasonal, weekday" />
+              </div>
+              
+              <div class="form-group">
+                <label class="form-label" for="e_type">
+                  Type
+                  <span class="help-icon" data-help="type">?</span>
+                </label>
+                <select id="e_type" class="form-select">
+                  <option value="card">Card (Standard)</option>
+                  <option value="banner">Banner</option>
+                  <option value="modal">Modal</option>
+                  <option value="inline">Inline</option>
+                </select>
+              </div>
+              
+              <div class="form-group full-width">
+                <label class="form-label" for="e_cta">
+                  Call-to-Action Link
+                  <span class="help-icon" data-help="ctaLink">?</span>
+                </label>
+                <input type="url" id="e_cta" class="form-input" placeholder="https://example.com/book or /page.html" />
+              </div>
+              
+              <div class="form-group full-width">
+                <label class="form-label" for="e_cta_text">
+                  Button Text
+                  <span class="help-icon" data-help="buttonText">?</span>
+                </label>
+                <input type="text" id="e_cta_text" class="form-input" placeholder="e.g., Book Now, Learn More, Buy Gift Cards" />
+              </div>
+              
+              <div class="form-group full-width">
+                <label class="form-label" for="e_fine">
+                  Fine Print / Restrictions
+                  <span class="help-icon" data-help="finePrint">?</span>
+                </label>
+                <input type="text" id="e_fine" class="form-input" placeholder="Valid Mon-Thu only. Cannot combine with other offers." />
+              </div>
+              
+              <div class="form-group full-width">
+                <div class="form-checkbox-group">
+                  <input type="checkbox" id="e_visibleInline" class="form-checkbox" />
+                  <label for="e_visibleInline" class="form-checkbox-label">
+                    Show on promotions page
+                    <span class="help-icon" data-help="visibleInline">?</span>
+                  </label>
+                </div>
+              </div>
+              
+              <div class="form-group full-width">
+                <label class="form-label">
+                  Active Days
+                  <span class="help-icon" data-help="activeDays">?</span>
+                </label>
+                <div id="e_days_row" class="day-buttons">
+                  <!-- Populated by JS -->
+                </div>
+                <input type="hidden" id="e_days" />
+              </div>
+              
+              <input type="hidden" id="e_id" />
+              
+              <div class="form-group full-width" style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 12px;">
+                <button type="button" id="applyBtn" class="btn btn-secondary">👁️ Preview</button>
+                <button type="button" id="saveBtn" class="btn btn-success">💾 Publish Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Preview Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <h3>👁️ Preview</h3>
+          </div>
+          <div class="panel-body">
+            <div id="previewArea">
+              <div class="empty-state">
+                <div class="empty-state-icon">👆</div>
+                <p>Select a promotion to preview</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div id="status" class="status-message">Ready</div>
+    <div style="font-size: 12px; color: var(--gray-500);">Admin Panel v1.0</div>
+  </div>
+</div>
+
+<!-- Help Modal -->
+<div id="helpModal" class="help-modal">
+  <div class="help-modal-content">
+    <div class="help-modal-header">
+      <h3 id="helpModalTitle">Field Help</h3>
+      <button class="help-modal-close" id="helpModalClose">×</button>
+    </div>
+    <div class="help-modal-body" id="helpModalBody">
+      <!-- Content populated by JavaScript -->
+    </div>
+  </div>
+</div>
+
+<script>
+/* Promo Admin: simple CRUD UI that edits the promos array and posts the full blob */
+(function () {
+  function $id(id) { return document.getElementById(id); }
+  
+  // Admin interface root (no access gate required)
+  const adminInterface = $id('adminInterface');
+  
+  // Admin UI elements
+  const statusEl = $id('status');
+  const promosList = $id('promosList');
+  const addPromoBtn = $id('addPromoBtn');
+  const refreshBtn = $id('refreshBtn');
+  const deleteSelectedBtn = $id('deleteSelectedBtn');
+  const applyBtn = $id('applyBtn');
+  const saveBtn = $id('saveBtn');
+  const previewArea = $id('previewArea');
+
+  // editor fields
+  const e_title = $id('e_title');
+  const e_teaser = $id('e_teaser');
+  const e_desc = $id('e_desc');
+  const e_chips_container = $id('e_chips_container');
+  const e_chips_input = $id('e_chips_input');
+  const e_chips = $id('e_chips'); // hidden field
+  const e_start = $id('e_start');
+  const e_end = $id('e_end');
+  const e_enabled = $id('e_enabled');
+  const e_cat = $id('e_cat');
+  const e_type = $id('e_type');
+  const e_cta = $id('e_cta');
+  const e_cta_text = $id('e_cta_text');
+  const e_fine = $id('e_fine');
+  const e_id = $id('e_id');
+  const e_visibleInline = $id('e_visibleInline'); // checkbox
+  const e_days = $id('e_days'); // hidden field that stores selected day numbers
+  const e_days_row = $id('e_days_row'); // container for clickable day buttons
+
+  let currentBlob = { updatedAt: new Date().toISOString(), promos: [] };
+  let selectedIndex = -1; // currently loaded in editor
+  let previewCompleted = false; // tracks if Preview has been clicked for current promo
+  let chipsData = []; // array of chip strings
+  let draggedIndex = null; // for drag-and-drop reordering
+
+  // No access gate: UI is immediately available
+
+  // ===== ADMIN UI LOGIC =====
+
+  function setStatus(msg, err) { statusEl.textContent = msg || ''; statusEl.style.color = err ? 'crimson' : '#666'; }
+  // API base is fixed for business users
+  function apiUrl() { return '/api/promos'; }
+
+  function createPromoNodeFromData(promo) {
+    const wrap = document.createElement('div');
+    wrap.className = 'service-card mb-3';
+    const chipsHtml = Array.isArray(promo.chips) ? promo.chips.map(c=> `<span class="chip">${escapeHtml(c)}</span>`).join(' ') : '';
+    const ctaHtml = promo.cta ? `<a class="btn btn-primary btn-sm btn-rounded" href="${escapeHtml(promo.cta.url)}" ${promo.cta.target === '_blank' ? 'target="_blank" rel="noopener"' : ''}>${escapeHtml(promo.cta.label || 'Learn more')}</a>` : (promo.ctaUrl ? `<a class="btn btn-primary btn-sm btn-rounded" href="${escapeHtml(promo.ctaUrl)}">${escapeHtml(promo.ctaLabel||'Learn more')}</a>` : '');
+  const fine = promo.finePrint ? `<div class="small text-muted p-3"><p class="mb-0"><strong>Restrictions:</strong> ${escapeHtml(promo.finePrint)}</p></div>` : '';
+    wrap.innerHTML = `
+      <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 p-3">
+        <div class="me-md-3">
+          <h3 class="mb-1">${escapeHtml(promo.title || '')}</h3>
+          <div class="promo-meta">${chipsHtml}</div>
+          <p class="mb-0">${escapeHtml(promo.description || '')}</p>
+        </div>
+        <div class="text-md-end promo-cta">${ctaHtml}</div>
+      </div>
+      ${fine}
+    `;
+    return wrap;
+  }
+
+  function escapeHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function escapeAttr(s) { return String(s||'').replace(/"/g,'&quot;'); }
+
+  // ===== CHIPS INPUT MANAGEMENT =====
+  function renderChips() {
+    // Remove existing chip tags
+    const existingTags = e_chips_container.querySelectorAll('.chip-tag');
+    existingTags.forEach(tag => tag.remove());
+    
+    // Add chip tags before the input
+    chipsData.forEach((chip, idx) => {
+      const tag = document.createElement('div');
+      tag.className = 'chip-tag';
+      tag.innerHTML = `${escapeHtml(chip)}<button type="button" data-idx="${idx}">×</button>`;
+      e_chips_container.insertBefore(tag, e_chips_input);
+    });
+    
+    // Update hidden field
+    e_chips.value = JSON.stringify(chipsData);
+  }
+
+  function addChip(text) {
+    text = text.trim();
+    if (!text) return;
+    if (chipsData.includes(text)) return; // no duplicates
+    chipsData.push(text);
+    renderChips();
+  }
+
+  function removeChip(idx) {
+    chipsData.splice(idx, 1);
+    renderChips();
+  }
+
+  // Chips input event listeners
+  e_chips_input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addChip(e_chips_input.value);
+      e_chips_input.value = '';
+    } else if (e.key === 'Backspace' && e_chips_input.value === '' && chipsData.length > 0) {
+      // Remove last chip on backspace if input is empty
+      removeChip(chipsData.length - 1);
+    }
+  });
+
+  e_chips_container.addEventListener('click', (e) => {
+    if (e.target.tagName === 'BUTTON' && e.target.dataset.idx !== undefined) {
+      removeChip(Number(e.target.dataset.idx));
+    } else {
+      // Focus input when clicking container
+      e_chips_input.focus();
+    }
+  });
+
+  // ===== HELP SYSTEM =====
+  const helpContent = {
+    title: {
+      title: 'Title',
+      content: '<p>The main headline for your promotion that appears in the list and when expanded.</p><strong>Best Practices:</strong><ul><li>Keep it short and attention-grabbing (5-10 words)</li><li>Use action words like "Save", "Get", "Enjoy"</li><li>Include the key benefit or offer</li></ul><strong>Examples:</strong><ul><li>"15% off Gift Card Purchases!"</li><li>"Our Gift of Gratitude: 10% OFF"</li><li>"Weekend Wellness Special"</li></ul>'
+    },
+    status: {
+      title: 'Status',
+      content: '<p>Controls whether this promotion is visible on your website.</p><strong>Enabled:</strong> Promotion will appear to customers during its active dates.<br><strong>Disabled:</strong> Promotion is hidden from customers but remains in your list for future use.<p style="margin-top:12px;">💡 <strong>Tip:</strong> Disable promotions instead of deleting them so you can reuse them next year!</p>'
+    },
+    teaser: {
+      title: 'Teaser Text',
+      content: '<p>Optional short text shown in the collapsed accordion button. If left blank, the <strong>Title</strong> will be used instead.</p><strong>When to use:</strong><ul><li>When your title is long and you want a shorter preview</li><li>To create intrigue that makes people want to click</li><li>To highlight the most important detail at a glance</li></ul><strong>Example:</strong><br>Title: "Our Gift of Gratitude: 10% OFF"<br>Teaser: "10% OFF + Free Add-On"'
+    },
+    description: {
+      title: 'Description',
+      content: '<p>The detailed explanation of your promotion that appears when customers expand the accordion.</p><strong>Include:</strong><ul><li>What the customer gets</li><li>Any qualifying requirements</li><li>Value or benefits</li><li>Compelling details that encourage booking</li></ul><strong>Example:</strong><br>"Book any 90- or 120-minute session and receive 10% off your service, plus enjoy a complimentary Luxury Add-On — choose Aromatherapy or Hot Stone (a $20 value)."'
+    },
+    chips: {
+      title: 'Highlight Chips',
+      content: '<p>Small badges that highlight key details at a glance. They appear prominently in the promotion card.</p><strong>How to use:</strong><ul><li>Type a short phrase and press <code>Enter</code></li><li>Each chip appears as a colored badge</li><li>Click the × to remove a chip</li><li>Press <code>Backspace</code> on empty input to delete last chip</li></ul><strong>Great for:</strong><ul><li>Time frames: "Now – Dec 31", "Mon–Thu"</li><li>Duration: "90 or 120 min"</li><li>Category: "Gift Cards", "Massages"</li><li>Special perks: "Complimentary Add-On"</li></ul><strong>Tip:</strong> Use 2-4 chips max for best visual impact.'
+    },
+    startDate: {
+      title: 'Start Date & Time',
+      content: '<p>When this promotion becomes active and visible to customers.</p><strong>Time Zone:</strong> America/Chicago (Central Time)<p style="margin-top:12px;">The promotion will automatically appear at this date and time. Leave blank if you want it to start immediately.</p><strong>Tip:</strong> Schedule holiday promotions in advance so they go live automatically!'
+    },
+    endDate: {
+      title: 'End Date & Time',
+      content: '<p>When this promotion automatically stops showing to customers.</p><strong>Time Zone:</strong> America/Chicago (Central Time)<p style="margin-top:12px;">The promotion will automatically disappear after this date and time. Leave blank if there\'s no end date.</p><strong>Tip:</strong> Set end dates for seasonal offers to avoid manually disabling them.'
+    },
+    category: {
+      title: 'Category',
+      content: '<p>Optional grouping label for organizing your promotions internally.</p><strong>Common categories:</strong><ul><li><code>seasonal</code> - Holiday or seasonal promotions</li><li><code>weekday</code> - Monday-Thursday specials</li><li><code>weekend</code> - Friday-Sunday offers</li><li><code>giftcards</code> - Gift card promotions</li><li><code>service</code> - Service-specific deals</li></ul><p>This doesn\'t appear to customers - it\'s just for your internal organization.</p>'
+    },
+    type: {
+      title: 'Type',
+      content: '<p>Determines how this promotion is displayed on your website.</p><strong>Card (Standard):</strong> Regular accordion card in the promotions section - most common<br><strong>Banner:</strong> Full-width banner at top of page (coming soon)<br><strong>Modal:</strong> Popup window when customer visits (coming soon)<br><strong>Inline:</strong> Embedded within page content (coming soon)<p style="margin-top:12px;">💡 <strong>Tip:</strong> Use "Card" for most promotions. Other types are for advanced use cases.</p>'
+    },
+    ctaLink: {
+      title: 'Call-to-Action Link',
+      content: '<p>Where the button takes customers when they click.</p><strong>External links:</strong> Full URL starting with <code>https://</code><br>Example: <code>https://www.fresha.com/book-now/...</code><p style="margin-top:8px;"><strong>Internal links:</strong> Path starting with <code>/</code><br>Example: <code>/gift-vouchers.html</code></p><strong>Tip:</strong> External links automatically open in a new tab. Internal links stay on your site.'
+    },
+    buttonText: {
+      title: 'Button Text',
+      content: '<p>The text that appears on the call-to-action button.</p><strong>Popular options:</strong><ul><li>"Book Now" - For service bookings</li><li>"Buy Gift Cards" - For gift card offers</li><li>"Learn More" - For informational pages</li><li>"Claim Offer" - For time-sensitive deals</li><li>"Shop Now" - For product promotions</li></ul><strong>Default:</strong> If left blank, it will say "Learn more"<p style="margin-top:12px;">💡 <strong>Tip:</strong> Use action words that match your goal!</p>'
+    },
+    finePrint: {
+      title: 'Fine Print / Restrictions',
+      content: '<p>Legal details, restrictions, and terms that customers should know.</p><strong>Include:</strong><ul><li>What CAN\'T be combined with the offer</li><li>Who is eligible</li><li>Blackout dates or limitations</li><li>Any special requirements</li></ul><strong>Examples:</strong><ul><li>"Valid for 90- and 120-minute massages only. Cannot be combined with weekday specials."</li><li>"Not valid with other offers. Discounted gift cards cannot be used toward discounted services."</li><li>"New clients only. One per person."</li></ul>'
+    },
+    visibleInline: {
+      title: 'Show on Promotions Page',
+      content: '<p>Controls whether this promotion appears in the main promotions section of your website.</p><strong>Checked (default):</strong> Promotion shows in the promotions accordion on your site<br><strong>Unchecked:</strong> Promotion is hidden from the main list (useful for targeted or private offers)<p style="margin-top:12px;">💡 <strong>Use unchecked for:</strong></p><ul><li>VIP or private offers sent via email</li><li>Testing new promotions before going live</li><li>Expired promotions you want to keep in the system</li></ul>'
+    },
+    activeDays: {
+      title: 'Active Days',
+      content: '<p>Limit this promotion to specific days of the week. Click to toggle days on/off.</p><strong>All days selected (default):</strong> Promotion appears every day during the date range<br><strong>Specific days selected:</strong> Promotion only appears on selected days<p style="margin-top:12px;"><strong>Example use cases:</strong></p><ul><li>Weekday specials: Mon, Tue, Wed, Thu</li><li>Weekend deals: Sat, Sun</li><li>Mid-week offers: Tue, Wed</li></ul><strong>How it works:</strong><br>Days are checked against the customer\'s current day. If today isn\'t in the list, the promotion won\'t show.'
+    }
+  };
+
+  const helpModal = $id('helpModal');
+  const helpModalTitle = $id('helpModalTitle');
+  const helpModalBody = $id('helpModalBody');
+  const helpModalClose = $id('helpModalClose');
+
+  function showHelp(topic) {
+    const help = helpContent[topic];
+    if (!help) return;
+    helpModalTitle.textContent = help.title;
+    helpModalBody.innerHTML = help.content;
+    helpModal.classList.add('active');
+  }
+
+  function hideHelp() {
+    helpModal.classList.remove('active');
+  }
+
+  // Help icon click handlers
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('help-icon')) {
+      const topic = e.target.dataset.help;
+      if (topic) showHelp(topic);
+    }
+  });
+
+  helpModalClose.addEventListener('click', hideHelp);
+  helpModal.addEventListener('click', (e) => {
+    if (e.target === helpModal) hideHelp();
+  });
+
+  // ESC key to close modal
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && helpModal.classList.contains('active')) {
+      hideHelp();
+    }
+  });
+
+  // Helper to enable/disable Publish button based on preview state
+  function updatePublishButtonState() {
+    if (previewCompleted) {
+      saveBtn.disabled = false;
+      saveBtn.style.opacity = '1';
+      saveBtn.title = 'Click to publish changes to the live site';
+    } else {
+      saveBtn.disabled = true;
+      saveBtn.style.opacity = '0.5';
+      saveBtn.title = 'Click Preview first to review your changes before publishing';
+    }
+  }
+
+  function renderList() {
+    promosList.innerHTML = '';
+    
+    if (currentBlob.promos.length === 0) {
+      promosList.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>No promotions yet. Click "+ New" to create one.</p></div>';
+      return;
+    }
+
+    function formatLocal(iso) { 
+      if (!iso) return ''; 
+      const d = new Date(iso); 
+      if (isNaN(d)) return iso; 
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); 
+    }
+
+    currentBlob.promos.forEach((p, idx) => {
+      const item = document.createElement('div');
+      item.className = 'promo-item';
+      item.dataset.idx = idx;
+      item.setAttribute('draggable', 'true');
+      
+      const statusBadge = p.enabled === false 
+        ? '<span class="status-badge inactive">Inactive</span>' 
+        : '<span class="status-badge active">Active</span>';
+      
+      const dateRange = formatLocal(p.start) && formatLocal(p.end) 
+        ? `${formatLocal(p.start)} → ${formatLocal(p.end)}` 
+        : 'No dates set';
+      
+      item.innerHTML = `
+        <div class="promo-item-content">
+          <div class="drag-handle" title="Drag to reorder">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+              <circle cx="4" cy="4" r="1.5"/>
+              <circle cx="4" cy="8" r="1.5"/>
+              <circle cx="4" cy="12" r="1.5"/>
+              <circle cx="12" cy="4" r="1.5"/>
+              <circle cx="12" cy="8" r="1.5"/>
+              <circle cx="12" cy="12" r="1.5"/>
+            </svg>
+          </div>
+          <div class="promo-item-info">
+            <div class="promo-item-title">
+              ${escapeHtml(p.title || p.id || 'Untitled')}
+              ${statusBadge}
+            </div>
+            <div class="promo-item-meta">
+              <span>📅 ${escapeHtml(dateRange)}</span>
+              ${p.category ? `<span>🏷️ ${escapeHtml(p.category)}</span>` : ''}
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-secondary editBtn" data-idx="${idx}">Edit</button>
+      `;
+      
+      promosList.appendChild(item);
+      
+      // Drag and drop event listeners
+      item.addEventListener('dragstart', handleDragStart);
+      item.addEventListener('dragend', handleDragEnd);
+      item.addEventListener('dragover', handleDragOver);
+      item.addEventListener('drop', handleDrop);
+      item.addEventListener('dragleave', handleDragLeave);
+    });
+
+    // attach handlers
+    promosList.querySelectorAll('.editBtn').forEach(b => {
+      b.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const i = Number(b.dataset.idx);
+        loadIntoEditor(i);
+      });
+    });
+    
+    // Click anywhere on item to edit (except drag handle)
+    promosList.querySelectorAll('.promo-item').forEach(item => {
+      item.addEventListener('click', (ev) => {
+        if (!ev.target.classList.contains('editBtn') && 
+            !ev.target.closest('.drag-handle')) {
+          const i = Number(item.dataset.idx);
+          loadIntoEditor(i);
+        }
+      });
+    });
+  }
+
+  // Drag and drop handlers
+  function handleDragStart(e) {
+    draggedIndex = Number(this.dataset.idx);
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.innerHTML);
+  }
+
+  function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    document.querySelectorAll('.promo-item').forEach(item => {
+      item.classList.remove('drag-over');
+    });
+  }
+
+  function handleDragOver(e) {
+    if (e.preventDefault) {
+      e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+  }
+
+  function handleDrop(e) {
+    if (e.stopPropagation) {
+      e.stopPropagation();
+    }
+    
+    const dropIndex = Number(this.dataset.idx);
+    
+    if (draggedIndex !== dropIndex) {
+      // Reorder the array
+      const draggedPromo = currentBlob.promos[draggedIndex];
+      currentBlob.promos.splice(draggedIndex, 1);
+      currentBlob.promos.splice(dropIndex, 0, draggedPromo);
+      
+      // Update selectedIndex if needed
+      if (selectedIndex === draggedIndex) {
+        selectedIndex = dropIndex;
+      } else if (draggedIndex < selectedIndex && dropIndex >= selectedIndex) {
+        selectedIndex--;
+      } else if (draggedIndex > selectedIndex && dropIndex <= selectedIndex) {
+        selectedIndex++;
+      }
+      
+      renderList();
+    }
+    
+    return false;
+  }
+
+  function handleDragLeave(e) {
+    this.classList.remove('drag-over');
+  }
+
+  function loadIntoEditor(idx) {
+    selectedIndex = idx;
+    previewCompleted = false; // Reset preview state when loading a new promo
+    updatePublishButtonState(); // Disable Publish button until Preview is clicked
+    const p = currentBlob.promos[idx];
+    e_title.value = p.title || '';
+    e_teaser.value = p.teaser || '';
+    e_desc.value = p.description || '';
+    // Load chips
+    chipsData = Array.isArray(p.chips) ? [...p.chips] : [];
+    renderChips();
+    // convert ISO -> local datetime-local value in America/Chicago
+    e_start.value = isoToZonedLocal(p.start);
+    e_end.value = isoToZonedLocal(p.end);
+    e_enabled.value = (p.enabled===false)?'false':'true';
+    e_cat.value = p.category || '';
+    e_type.value = p.type || 'card';
+    e_cta.value = (p.cta && p.cta.url) || p.ctaUrl || '';
+    e_cta_text.value = (p.cta && p.cta.label) || p.ctaLabel || '';
+    e_fine.value = p.finePrint || '';
+    e_id.value = p.id || '';
+    e_visibleInline.checked = (p.visibleInline===false)?false:true;
+    // set day buttons
+    const selectedDays = Array.isArray(p.days) ? p.days.map(Number) : [];
+    e_days.value = selectedDays.join(',');
+    updateDayButtons(selectedDays);
+    renderPreviewFor(p);
+  }
+
+  function renderPreviewFor(promo) {
+    previewArea.innerHTML = '';
+    const node = createPromoNodeFromData(promo);
+    previewArea.appendChild(node);
+  }
+
+  addPromoBtn.addEventListener('click', ()=>{
+    const id = 'promo-' + Date.now().toString(36);
+    const newPromo = { id, title: 'New promo', description: '', start: '', end: '', enabled: true, placement: 'promotions-column' };
+    currentBlob.promos.push(newPromo);
+    renderList();
+    loadIntoEditor(currentBlob.promos.length-1);
+  });
+
+  refreshBtn.addEventListener('click', (e)=>{ e.preventDefault(); loadPromos(); });
+
+  deleteSelectedBtn.addEventListener('click', ()=>{
+    if (selectedIndex < 0 || !currentBlob.promos[selectedIndex]) { 
+      alert('Please select a promotion to delete first (click Edit on one from the list)'); 
+      return; 
+    }
+    const promo = currentBlob.promos[selectedIndex];
+    if (!confirm(`Delete "${promo.title || 'this promotion'}"?`)) return;
+    currentBlob.promos.splice(selectedIndex, 1);
+    selectedIndex = -1; 
+    previewArea.innerHTML = '<div class="empty-state"><div class="empty-state-icon">👆</div><p>Select a promotion to preview</p></div>';
+    clearEditor();
+    renderList();
+    setStatus('Promotion deleted (not yet published)');
+  });
+  
+  function clearEditor() {
+    e_title.value = '';
+    e_teaser.value = '';
+    e_desc.value = '';
+    chipsData = [];
+    renderChips();
+    e_start.value = '';
+    e_end.value = '';
+    e_enabled.value = 'true';
+    e_cat.value = '';
+    e_type.value = 'card';
+    e_cta.value = '';
+    e_cta_text.value = '';
+    e_fine.value = '';
+    e_id.value = '';
+    e_visibleInline.checked = true;
+    e_days.value = '';
+    updateDayButtons([]);
+    previewCompleted = false; // Reset preview state
+    updatePublishButtonState(); // Disable Publish button
+  }
+
+  // Preview (apply current editor values to the preview and commit into the model)
+  applyBtn.addEventListener('click', ()=>{
+    if (selectedIndex < 0 || !currentBlob.promos[selectedIndex]) { alert('Select a promo to preview (click Edit)'); return; }
+    const p = currentBlob.promos[selectedIndex];
+    p.title = e_title.value;
+    p.teaser = e_teaser.value || '';
+    p.description = e_desc.value;
+    p.chips = [...chipsData]; // Save chips array
+  // store as ISO (UTC) using America/Chicago as the editor timezone
+  p.start = e_start.value ? localValueToIsoLocalTz(e_start.value) : '';
+  p.end = e_end.value ? localValueToIsoLocalTz(e_end.value) : '';
+    p.enabled = e_enabled.value === 'true';
+    p.category = e_cat.value || '';
+    p.type = e_type.value || 'card';
+    const cta = e_cta.value.trim(); 
+    const ctaText = e_cta_text.value.trim();
+    p.cta = cta ? { url: cta, target: cta.startsWith('http') ? '_blank' : '', label: ctaText || 'Learn more' } : undefined;
+    p.finePrint = e_fine.value || '';
+    p.id = e_id.value || p.id;
+    p.visibleInline = !!e_visibleInline.checked;
+    // read days from buttons
+    const btns = Array.from(e_days_row.querySelectorAll('button[data-day].active')).map(b=> Number(b.dataset.day));
+    p.days = btns;
+    e_days.value = p.days.join(',');
+    renderList(); renderPreviewFor(p);
+    
+    // Mark preview as completed and enable Publish button
+    previewCompleted = true;
+    updatePublishButtonState();
+    setStatus('Preview updated. Click "Publish Changes" to save to the live site.');
+  });
+
+  saveBtn.addEventListener('click', async ()=>{
+    try {
+      setStatus('Publishing...');
+      currentBlob.updatedAt = new Date().toISOString();
+      
+      const headers = { 'Content-Type': 'application/json' };
+      const res = await fetch(apiUrl(), { method: 'POST', headers, body: JSON.stringify(currentBlob) });
+      
+      if (!res.ok) { 
+        const txt = await res.text(); 
+        setStatus('Save failed: ' + res.status + ' ' + txt, true); 
+        return; 
+      }
+      const j = await res.json();
+      currentBlob.updatedAt = j.updatedAt || currentBlob.updatedAt;
+      setStatus('Published: ' + currentBlob.updatedAt);
+    } catch (err) { 
+      setStatus('Save error: ' + err.message, true); 
+    }
+  });
+
+  async function loadPromos() {
+    setStatus('Loading...');
+    try {
+  const res = await fetch(apiUrl(), { cache: 'no-store' });
+      if (!res.ok) { 
+        const errorText = await res.text().catch(() => res.statusText);
+        setStatus(`Load failed (${res.status}): ${errorText}`, true); 
+        return; 
+      }
+      const json = await res.json();
+      if (Array.isArray(json)) currentBlob.promos = json;
+      else if (json && Array.isArray(json.promos)) currentBlob = Object.assign({ updatedAt: new Date().toISOString() }, json);
+      else { setStatus('Unexpected JSON shape', true); return; }
+      renderList(); 
+      updatePublishButtonState(); // Ensure button is disabled when no promo is selected
+      setStatus('Loaded');
+    } catch (err) { 
+      setStatus('Load error: ' + err.message + ' (Is the API deployed?)', true); 
+    }
+  }
+
+  // Day buttons helper: Mon..Sun mapped to 1..7
+  const DAYS = [
+    { label: 'Mon', v: 1 },{ label: 'Tue', v: 2 },{ label: 'Wed', v: 3 },{ label: 'Thu', v: 4 },{ label: 'Fri', v: 5 },{ label: 'Sat', v: 6 },{ label: 'Sun', v: 7 }
+  ];
+
+  // Timezone handling: treat all editor datetimes as America/Chicago (supports DST)
+  const TZ = 'America/Chicago';
+
+  // Return formatted parts for an epoch in the given timezone
+  function getZonedParts(epoch, tz) {
+    const fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      hour12: false,
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit'
+    });
+    const parts = fmt.formatToParts(new Date(epoch));
+    const obj = {};
+    for (const p of parts) {
+      if (p.type !== 'literal') obj[p.type] = p.value;
+    }
+    return {
+      year: Number(obj.year), month: Number(obj.month), day: Number(obj.day),
+      hour: Number(obj.hour), minute: Number(obj.minute), second: Number(obj.second)
+    };
+  }
+
+  // Convert ISO string -> datetime-local value in TZ
+  function isoToZonedLocal(iso) {
+    if (!iso) return '';
+    const epoch = Date.parse(iso);
+    if (isNaN(epoch)) return '';
+    const p = getZonedParts(epoch, TZ);
+    const pad = n => String(n).padStart(2, '0');
+    return `${p.year}-${pad(p.month)}-${pad(p.day)}T${pad(p.hour)}:${pad(p.minute)}`;
+  }
+
+  // Given local components in TZ, find the corresponding epoch (ms) using binary search
+  function zonedLocalToEpoch(year, month, day, hour, minute, tz) {
+    // initial guess: treat components as UTC
+    const guess = Date.UTC(year, month - 1, day, hour, minute);
+    // search +/- 36 hours to account for DST transitions
+    let lo = guess - 36 * 3600 * 1000;
+    let hi = guess + 36 * 3600 * 1000;
+    for (let i = 0; i < 60; i++) {
+      const mid = Math.floor((lo + hi) / 2);
+      const parts = getZonedParts(mid, tz);
+      const key = `${parts.year}-${parts.month}-${parts.day}-${parts.hour}-${parts.minute}`;
+      const targetKey = `${year}-${month}-${day}-${hour}-${minute}`;
+      if (key === targetKey) return mid;
+      // compare lexicographically by date/time
+      if (key < targetKey) lo = mid + 1; else hi = mid - 1;
+    }
+    // fallback: return guess (may be off during ambiguous/non-existent times)
+    return guess;
+  }
+
+  // Convert editor datetime-local value (treated as TZ) -> ISO UTC
+  function localValueToIsoLocalTz(val) {
+    if (!val) return '';
+    // val format: YYYY-MM-DDTHH:MM
+    const m = val.match(/(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    if (!m) return '';
+    const [_, y, mo, d, hh, mm] = m;
+    const epoch = zonedLocalToEpoch(Number(y), Number(mo), Number(d), Number(hh), Number(mm), TZ);
+    return new Date(epoch).toISOString();
+  }
+
+  function renderDayButtons() {
+    if (!e_days_row) return;
+    e_days_row.innerHTML = '';
+    DAYS.forEach(d=>{
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'day-btn';
+      b.dataset.day = d.v;
+      b.textContent = d.label;
+      b.addEventListener('click', ()=>{ b.classList.toggle('active'); updateHiddenDays(); });
+      e_days_row.appendChild(b);
+    });
+  }
+
+  function updateHiddenDays(){
+    const selected = Array.from(e_days_row.querySelectorAll('button.active')).map(b=> Number(b.dataset.day));
+    e_days.value = selected.join(',');
+  }
+
+  function updateDayButtons(selectedDays){
+    if (!e_days_row) return;
+    const btns = Array.from(e_days_row.querySelectorAll('button[data-day]'));
+    btns.forEach(b=>{ const v = Number(b.dataset.day); if (selectedDays.includes(v)) b.classList.add('active'); else b.classList.remove('active'); });
+  }
+
+  // init
+  function init() {
+    renderDayButtons();
+    loadPromos();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
